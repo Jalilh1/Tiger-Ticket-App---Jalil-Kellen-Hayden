@@ -1,7 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const { listEvents } = require('../client-service/controllers/controller');
+const clientController = require('../controllers/clientController');
 
-router.get('/events', listEvents);
+
+router.get('/events', clientController.listEvents);
+router.get('/events/:id', clientController.getEvent);
+router.post('/purchase', clientController.purchaseTicket);
 
 module.exports = router;
+
+
