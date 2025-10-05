@@ -39,4 +39,69 @@ const clientModel = {
     });
   },
 
-  
+    // Purchase ticket
+  purchaseTicket: (purchaseData) => {
+    return new Promise((resolve, reject) => {
+      const { event_id, customer_name, quantity } = purchaseData;
+      const db = getDbConnection();
+
+      // Start transaction
+      db.serialize(() => {
+        // Check if tickets available
+        db.get('SELECT available_tickets, price FROM events WHERE id = ?', [event_id], (err, event) => {
+          if (err) {
+            db.close();
+            reject(err);
+            return;
+          }
+
+          if (!event) {
+            db.close();
+            reject(new Error('Event not found'));
+            return;
+          }
+
+          if (event.available_tickets < quantity) {
+            db.close();
+            reject(new Error('Not enough tickets available'));
+            return;
+          }
+
+          //Insert purchase
+          db.run(
+            'INSERT INTO purchases (event_id, customer_name, quantity) VALUES (?, ?, ?)',
+            [event_id, customer_name, quantity],
+            function(err) {
+              if (err) {
+                db.close();
+                reject(err);
+                return;
+              }
+
+              const purchaseId = this.lastID;
+
+              //Update available tickets
+              db.run(
+                'UPDATE events SET available_tickets = available_tickets - ? WHERE id = ?',
+                [quantity, event_id],
+                (err) => {
+                  db.close();
+                  if (err) reject(err);
+                  else resolve({ 
+                    id: purchaseId, 
+                    event_id, 
+                    customer_name, 
+                    quantity,
+                    message: 'Ticket purchased successfully!' 
+                  });
+                }
+              );
+            }
+          );
+        });
+      });
+    });
+  }
+};
+
+module.exports = clientModel;
