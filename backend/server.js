@@ -4,6 +4,5 @@ const app = express();
 const routes = require('./routes/routes');
 app.use(cors());
 app.use('/api', routes);
-const PORT = 5000;
-app.listen(PORT, () => console.log(`Server running at
-http://localhost:${PORT}`));
+const PORT = 3001;
+app.listen(PORT, () => console.log(`Server running at http://localhost:${PORT}`));

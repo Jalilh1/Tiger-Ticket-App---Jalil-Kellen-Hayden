@@ -4,7 +4,7 @@ import './App.css';
 function App() {
   const [events, setEvents] = useState([]);
   useEffect(() => {
-    fetch('http://localhost:5000/api/events')
+    fetch('/api/events')
       .then((res) => res.json())
       .then((data) => setEvents(data))
       .catch((err) => console.error(err));
