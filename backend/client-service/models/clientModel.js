@@ -39,15 +39,15 @@ const clientModel = {
     });
   },
 
-    // Purchase ticket
+   //Purchasing the ticket
   purchaseTicket: (purchaseData) => {
     return new Promise((resolve, reject) => {
       const { event_id, customer_name, quantity } = purchaseData;
       const db = getDbConnection();
 
-      // Start transaction
+      //Start transaction
       db.serialize(() => {
-        // Check if tickets available
+        //Check if tickets available
         db.get('SELECT available_tickets, price FROM events WHERE id = ?', [event_id], (err, event) => {
           if (err) {
             db.close();
