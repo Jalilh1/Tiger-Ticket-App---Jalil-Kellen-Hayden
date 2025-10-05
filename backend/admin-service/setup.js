@@ -18,8 +18,7 @@ function initializeDatabase() {
             if (err) {
                 return reject(err);
             }
-        }
-    });
+});
 
     if (fs.existsSync(sqlPath)) {
         const initSql = fs.readFileSync(sqlPath, 'utf-8');
@@ -38,6 +37,7 @@ function initializeDatabase() {
         db.close();
         return reject(new Error('SQL initialization file not found'));
     }
-};
+});
+}
 
 module.exports = { initializeDatabase };
