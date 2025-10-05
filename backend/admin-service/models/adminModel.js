@@ -14,5 +14,29 @@ function getDbConnection() {
 }
 
 const adminModel = {
-    getAllEvents:
+    getAllEvents: () => {
+        return new Promise((resolve, reject) => {
+            const db = getDbConnection();
+            db.all('SELECT * FROM events ORDER BY date', [], (err, rows) => {
+                db.close();
+                if (err) reject(err)
+                    else resolve(rows);
+                });
+        });
+    },
+    getEventById: (id) => {
+        return new Promise((resolve, reject) => {
+            const db = getDbConnection();
+            db.get('SELECT * FROM events WHERE id = ?', [id], (err, row) => {
+                db.close();
+                if (err) reject(err)
+                    else resolve(row);
+                });
+        });
+    },
+
+    createEvent: (eventData) => {
+        return new Promise((resolve, reject) => {
+            const db = getDbConnection();
+            const { name, date, location, description } = eventData;
 module.exports = { adminModel };
