@@ -2,7 +2,7 @@ const { adminModel } = require('../../models/adminModel');
 
 
 const adminController = {
-    listAllEvents: async (req, res) => {
+    listEvents: async (req, res) => {
         try {
             const events = await adminModel.getAllEvents();
             res.json(events);
