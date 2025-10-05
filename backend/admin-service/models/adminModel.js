@@ -1,9 +1,18 @@
-// Mock data for Clemson events
-const getEvents = () => {
-    return [
-    { id: 1, name: 'Clemson Football Game', date: '2025-09-01' },
-    { id: 2, name: 'Campus Concert', date: '2025-09-10' },
-    { id: 3, name: 'Career Fair', date: '2025-09-15' }
-    ];
-};
-module.exports = { getEvents };
+
+const sqlite3 = require('sqlite3').verbose();
+const path = require('path');
+
+const dbPath = path.join(__dirname, '../shared-db/database.sqlite');
+
+
+function getDbConnection() {
+    return new sqlite3.Database(dbPath, (err) => {
+        if (err) {
+            console.error('Could not connect to database', err);
+        }
+    });
+}
+
+const adminModel = {
+    getAllEvents:
+module.exports = { adminModel };
