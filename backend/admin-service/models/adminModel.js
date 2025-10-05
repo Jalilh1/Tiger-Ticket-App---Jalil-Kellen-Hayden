@@ -37,6 +37,48 @@ const adminModel = {
 
     createEvent: (eventData) => {
         return new Promise((resolve, reject) => {
+            const { name, date, capacity, available_tickets  } = eventData;
             const db = getDbConnection();
-            const { name, date, location, description } = eventData;
+
+            db.run(
+                'INSERT INTO events (name, date, capacity, available_tickets) VALUES (?, ?, ?, ?)',
+                [name, date, capacity, available_tickets],
+                function (err) {
+                    db.close();
+                    if (err) reject(err)
+                        else resolve({ id: this.lastID, ...eventData });
+                }
+            );
+        });
+    },
+
+    updateEvent: (id, eventData) => {
+        return new Promise((resolve, reject) => {
+            const { name, date, capacity, available_tickets } = eventData;
+            const db = getDbConnection();
+
+            db.run(
+                'UPDATE events SET name = ?, date = ?, capacity = ?, available_tickets = ? WHERE id = ?',
+                [name, date, capacity, available_tickets, id],
+                function (err) {
+                    db.close();
+                    if (err) reject(err);
+                        else resolve({ id, ...eventData });
+                }
+            );
+        });
+    },
+
+    deleteEvent: (id) => {
+        return new Promise((resolve, reject) => {
+            const db = getDbConnection();
+            db.run('DELETE FROM events WHERE id = ?', [id], function (err) {
+                db.close();
+                if (err) reject(err);
+                    else resolve({ id, changes: this.changes });
+                });
+        });
+    }
+};
+
 module.exports = { adminModel };
