@@ -13,5 +13,30 @@ function getDBConnection() {
     });
 }
 
+
 const clientModel = {
-    getAlleven
+  
+  getAllEvents: () => {
+    return new Promise((resolve, reject) => {
+      const db = getDbConnection();
+      db.all('SELECT * FROM events WHERE available_tickets > 0 ORDER BY date', [], (err, rows) => {
+        db.close();
+        if (err) reject(err);
+        else resolve(rows);
+      });
+    });
+  },
+
+
+  getEventById: (id) => {
+    return new Promise((resolve, reject) => {
+      const db = getDbConnection();
+      db.get('SELECT * FROM events WHERE id = ?', [id], (err, row) => {
+        db.close();
+        if (err) reject(err);
+        else resolve(row);
+      });
+    });
+  },
+
+  
