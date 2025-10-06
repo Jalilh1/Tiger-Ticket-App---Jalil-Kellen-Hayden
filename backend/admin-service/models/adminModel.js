@@ -36,21 +36,23 @@ const adminModel = {
     },
 
     createEvent: (eventData) => {
-        return new Promise((resolve, reject) => {
-            const { name, date, capacity, available_tickets  } = eventData;
-            const db = getDbConnection();
+    return new Promise((resolve, reject) => {
+      const { name, date, capacity, available_tickets } = eventData;
+      const db = getDbConnection();
 
-            db.run(
-                'INSERT INTO events (name, date, capacity, available_tickets) VALUES (?, ?, ?, ?)',
-                [name, date, capacity, available_tickets],
-                function (err) {
-                    db.close();
-                    if (err) reject(err)
-                        else resolve({ id: this.lastID, ...eventData });
-                }
-            );
-        });
-    },
+      const sql = `INSERT INTO events (name, date, capacity, available_tickets)
+                   VALUES (?, ?, ?, ?)`;
+
+      db.run(sql, [name, date, capacity, available_tickets], function (err) {
+        db.close();
+        if (err) {
+          console.error('SQLite insert error:', err);  
+          return reject(err);
+        }
+        resolve({ id: this.lastID, name, date, capacity, available_tickets });
+      });
+    });
+  },
 
     updateEvent: (id, eventData) => {
         return new Promise((resolve, reject) => {
