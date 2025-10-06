@@ -85,54 +85,67 @@ function App() {
 
     if (loading) {
       return (
-        <div className="App">
+        <main className="App" role="main">
           <h1>Clemson Campus Events</h1>
           <p>Loading events...</p>
-        </div>
+        </main>
       );
     }
 
     if (error) {
       return (
-        <div className="App">
-          <h1>Clemson Campus Events</h1>
-          <p className="error">{error}</p>
-        </div>
+        <main className="App" role="main">
+          <h1 tabIndex="0">Clemson Campus Events</h1>
+          <p className="error" role="alert">{error}</p>
+        </main>
       );
     }
 
     return (
-      <div className="App">
-        <h1>Clemson Campus Events</h1>
+      <main className="App" role="main">
+        <h1 tabIndex="0">Clemson Campus Events</h1>
         {message && (
-          <div className="message">{message}</div>
+          <div 
+          className="message"
+          role="status"
+          aria-live="polite"
+          tabIndex="0"
+          >
+            {message}
+            </div>
         )}
         {events.length === 0 ? (
           <p>No events available at the moment.</p>
         ) : (
-          <ul>
+          <ul aria-label="List of campus events">
             {events.map((event) => (
-              <li key={event.id}>
-                <div className= "event-info">
-                  <strong>{event.name}</strong>
-                  <span> - {event.date}</span>
-                <br />
-                <span className="tickets-available">
-                  {event.available_tickets} ticket(s) available
-                </span>
-                </div>
+              <li key={event.id} className="event-info">
+                <article aria-labelledby={`event-${event.id}-title`}>
+                  <h2 id={`event-${event.id}-title`} tabIndex="0">
+                    {event.name}
+                  </h2>
+                  <p>
+                    <time dateTime={event.date}>{event.date}</time>
+                  </p>
+                  <p className="tickets-available" tabIndex="0">
+                    {event.available_tickets} ticket(s) available
+                  </p>
                 <button 
                   onClick={() => buyTicket(event.id, event.name)}
                   disabled={event.available_tickets === 0}
                   className={event.available_tickets === 0 ? 'sold-out' : ''}
+                  aria-label={
+                    event.available_tickets === 0 ? `${event.name} is sold out` : `Buy ticket for ${event.name}`
+                  }
                   >
                   {event.available_tickets === 0 ? 'Sold Out' : 'Buy Ticket'}
                   </button>
+                </article>
               </li>
             ))}
           </ul>
         )}
-      </div>
+      </main>
       );
     }
 export default App;
