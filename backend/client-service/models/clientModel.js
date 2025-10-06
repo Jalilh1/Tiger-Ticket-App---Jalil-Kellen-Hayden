@@ -3,7 +3,7 @@ const path = require('path');
 
 const dbPath = path.join(__dirname, '../../shared-db/database.sqlite');
 
-function getDBConnection() {
+function getDbConnection() {
     return new sqlite3.Database(dbPath, (err) => {
         if (err) {
             console.error('Could not connect to database', err);
@@ -48,7 +48,7 @@ const clientModel = {
       //Start transaction
       db.serialize(() => {
         //Check if tickets available
-        db.get('SELECT available_tickets, price FROM events WHERE id = ?', [event_id], (err, event) => {
+        db.get('SELECT available_tickets FROM events WHERE id = ?', [event_id], (err, event) => {
           if (err) {
             db.close();
             reject(err);
@@ -69,7 +69,7 @@ const clientModel = {
 
           //Insert purchase
           db.run(
-            'INSERT INTO purchases (event_id, customer_name, quantity) VALUES (?, ?, ?)',
+            'INSERT INTO purchases (event_id, customer_name, customer_email, quantity) VALUES (?, ?, ?, ?)',
             [event_id, customer_name, quantity],
             function(err) {
               if (err) {

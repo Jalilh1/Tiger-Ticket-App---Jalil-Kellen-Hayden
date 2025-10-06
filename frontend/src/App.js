@@ -15,7 +15,7 @@ function App() {
   }, []);
   
   const fetchEvents = () => {
-    fetch('/api/client-service/events')
+    fetch('/api/client/events')
       .then((res) => {
         if (!res.ok) {
           throw new Error('Network response was not ok');
@@ -53,7 +53,7 @@ function App() {
       return;
     }
 
-    fetch('/api/client-service/purchase', {
+    fetch('/api/client/purchase', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

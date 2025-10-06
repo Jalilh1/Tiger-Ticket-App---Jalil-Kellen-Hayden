@@ -1,4 +1,4 @@
-const { adminModel } = require('../../models/adminModel');
+const adminModel  = require('../models/adminModel');
 
 
 const adminController = {
@@ -60,4 +60,4 @@ const adminController = {
     },
 };
 
-module.exports = { adminController };
+module.exports =  adminController;

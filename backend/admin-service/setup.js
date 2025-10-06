@@ -23,7 +23,7 @@ function initializeDatabase() {
     if (fs.existsSync(sqlPath)) {
         const initSql = fs.readFileSync(sqlPath, 'utf-8');
 
-        db.exec(sql, (err) => {
+        db.exec(initSql, (err) => {
             if (err) {
                 db.close();
                 return reject(err);
@@ -40,4 +40,4 @@ function initializeDatabase() {
 });
 }
 
-module.exports = { initializeDatabase };
+module.exports =  initializeDatabase ;

@@ -2,10 +2,10 @@ const express = require('express');
 const cors = require('cors');
 const app = express();
 const routes = require('./routes/adminRoutes');
-const { initializeDatabase } = require('./setup');
+const  initializeDatabase = require('./setup');
 
 app.use(cors());
-app.use('/api/admin-service', routes);
+app.use('/api/admin', routes);
 const PORT = 5001;
 
 app.get('/', (req, res) => {

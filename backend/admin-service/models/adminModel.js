@@ -2,7 +2,7 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 
-const dbPath = path.join(__dirname, '../shared-db/database.sqlite');
+const dbPath = path.join(__dirname, '../../shared-db/database.sqlite');
 
 
 function getDbConnection() {
@@ -81,4 +81,4 @@ const adminModel = {
     }
 };
 
-module.exports = { adminModel };
+module.exports = adminModel ;
