@@ -21,6 +21,19 @@ h1 {
   font-weight: bold;
 }
 
+.message[role="status"] {
+  /* visually stronger for screen reader status updates */
+  background-color: #e9f9ee;
+  border-color: #b6e0b9;
+  color: #1b5e20;
+}
+
+/* Focus outline for keyboard navigation */
+:focus {
+  outline: 3px solid #f56600;
+  outline-offset: 2px;
+}
+
 .error {
   color: #d32f2f;
   font-size: 18px;
@@ -44,9 +57,24 @@ li {
   align-items: center;
 }
 
+/* Subtle Clemson orange tint on hover */
+li:hover {
+  background-color: #fff8f0;
+}
+
 .event-info {
   text-align: left;
   flex: 1;
+}
+
+.event-info h2 {
+  font-size: 20px;
+  color: #522d80;
+  margin-bottom: 8px;
+}
+
+.event-info p {
+  margin: 5px 0;
 }
 
 .event-info strong {
@@ -86,5 +114,7 @@ button:disabled {
 }
 
 button.sold-out {
-  background-color: #999;
+  background-color: #bbb;
+  color: #fff;
+  cursor: not-allowed;
 }
