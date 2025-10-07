@@ -86,7 +86,7 @@ function App() {
     if (loading) {
       return (
         <main className="App" role="main">
-          <h1>Clemson Campus Events</h1>
+          <h1>Clemson Tiger Tix</h1>
           <p>Loading events...</p>
         </main>
       );
@@ -103,7 +103,7 @@ function App() {
 
     return (
       <main className="App" role="main">
-        <h1 tabIndex="0">Clemson Campus Events</h1>
+        <h1 tabIndex="0">Clemson Tiger Tix</h1>
         {message && (
           <div 
           className="message"
