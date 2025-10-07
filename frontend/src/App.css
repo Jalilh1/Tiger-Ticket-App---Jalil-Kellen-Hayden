@@ -1,3 +1,9 @@
+/* 
+ * App styles
+ * Brief: Layout, accessible focus outline, event list cards, status & error styles.
+ * Contains: .App, .message[role="status"], .error, list/card styles, button states.
+ */
+ 
 .App {
   text-align: center;
   padding: 20px;

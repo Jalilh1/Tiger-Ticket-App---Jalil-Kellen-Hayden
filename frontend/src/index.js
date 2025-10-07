@@ -1,3 +1,12 @@
+/**
+ * App bootstrap
+ * Purpose: Create root and render <App/> with React.StrictMode.
+ * Params: none
+ * Returns: void
+ * Side effects: Mounts React tree to #root; optionally reports web vitals.
+ * // WHY: StrictMode surfaces potential issues during development early.
+ */
+
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';

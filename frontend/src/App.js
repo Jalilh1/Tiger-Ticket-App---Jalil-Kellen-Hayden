@@ -1,3 +1,11 @@
+/**
+ * App (React component)
+ * Purpose: Fetch and display campus events; allow ticket purchase.
+ * Params: none (uses internal state + browser fetch).
+ * Returns: JSX tree rendering header, status message, and event list.
+ * Side effects: Network requests to /api/client/events and /api/client/purchase.
+ */
+
 import React, { useEffect, useState } from 'react';
 import './App.css';
 
@@ -14,6 +22,13 @@ function App() {
     fetchEvents();
   }, []);
   
+  /**
+   * fetchEvents
+   * Purpose: Load events from server and hydrate UI state.
+   * Params: none (closes over setEvents/setLoading/setError).
+   * Returns: void (updates React state).
+   * Side effects: GET /api/client/events; sets loading/error flags.
+   */
   const fetchEvents = () => {
     fetch('/api/client/events')
       .then((res) => {
@@ -33,6 +48,16 @@ function App() {
       });
   };
 
+  /**
+   * buyTicket
+   * Purpose: Collect purchaser info and submit ticket order.
+   * Params:
+   *   - eventId: number — target event identifier
+   *   - eventName: string — for friendly success message
+   * Returns: void (updates message state; triggers list refresh).
+   * Side effects: Prompts for name/email/qty; POST /api/client/purchase; 
+   *   shows user feedback; re-fetches events on success.
+   */
   const buyTicket = (eventId, eventName) => {
     const customerName = prompt('Enter your name:');
     if (!customerName) {
