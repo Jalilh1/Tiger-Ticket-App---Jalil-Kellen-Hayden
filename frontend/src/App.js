@@ -4,6 +4,12 @@
  * Params: none (uses internal state + browser fetch).
  * Returns: JSX tree rendering header, status message, and event list.
  * Side effects: Network requests to /api/client/events and /api/client/purchase.
+ * 
+ * Accessibility updates:
+ *  - added ARIA roles for assistive tech
+ *  - added aria-lables for list, date, and buttons to improve screen reader clarity
+ *  - added tabIndex="0" to key text elements for keyboard-only navigation
+ *  - used aria-live="polite" to announce dynamic status messages
  */
 
 import React, { useEffect, useState } from 'react';
@@ -110,6 +116,7 @@ function App() {
 
     if (loading) {
       return (
+        // role="main" identifies the primary content region for screen readers
         <main className="App" role="main">
           <h1>Clemson Tiger Tix</h1>
           <p>Loading events...</p>
@@ -132,9 +139,9 @@ function App() {
         {message && (
           <div 
           className="message"
-          role="status"
-          aria-live="polite"
-          tabIndex="0"
+          role="status"           //announces status messages politely
+          aria-live="polite"      //screen readers read updates automatically
+          tabIndex="0"            //focasable for keyboard users
           >
             {message}
             </div>
@@ -158,7 +165,7 @@ function App() {
                       day: 'numeric', 
                       year: 'numeric', 
                     })}`}
-                    tabIndex="0"
+                    tabIndex="0"  //allows date to be focused via keyboard
                     >
                       {event.date}
                     </time>
