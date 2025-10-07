@@ -1,3 +1,9 @@
+/*
+  SQLite DB Intialization Script and table schema.
+  Purpose: Initialize SQLite database with events and purchases tables.
+  Side effects: Creates tables if not exist and seeds initial event data.
+*/
+
 CREATE TABLE IF NOT EXISTS events (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,

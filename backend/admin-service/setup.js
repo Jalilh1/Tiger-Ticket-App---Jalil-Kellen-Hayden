@@ -1,3 +1,11 @@
+/**
+ * Database setup
+ * Brief: Ensures DB directory exists and executes init SQL against SQLite.
+ * Params: none
+ * Returns: Promise<void> (rejects if init.sql missing or exec fails)
+ * Side effects: Creates/updates DB file on disk.
+ * // WHY: Centralize one-time schema creation so services can reuse it safely.
+ */
 
 const sqlite3 = require('sqlite3').verbose();
 const fs = require('fs');

@@ -1,3 +1,8 @@
+/**
+ * Client data model
+ * Brief: SQLite reads for events and transactional ticket purchase.
+ */
+
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 
@@ -16,6 +21,11 @@ function getDbConnection() {
 
 const clientModel = {
   
+  /**
+   * Purpose: Fetch all events with remaining inventory.
+   * Params: none
+   * Returns: Promise<Event[]>
+   */
   getAllEvents: () => {
     return new Promise((resolve, reject) => {
       const db = getDbConnection();
@@ -27,7 +37,11 @@ const clientModel = {
     });
   },
 
-
+  /**
+   * Purpose: Fetch a single event by id.
+   * Params: (id: string|number)
+   * Returns: Promise<Event|null>
+   */
   getEventById: (id) => {
     return new Promise((resolve, reject) => {
       const db = getDbConnection();
@@ -39,7 +53,12 @@ const clientModel = {
     });
   },
 
-   //Purchasing the ticket
+
+  /**
+ * Purpose: Create a purchase and decrement inventory atomically.
+ * Params: (purchaseData: { event_id:number, customer_name:string, customer_email:string, quantity:number})
+ * Returns: Promise<{ id:number, event_id:number, customer_name:string, customer_email:string, quantity:number, message:string }>
+ */
   purchaseTicket: (purchaseData) => {
     return new Promise((resolve, reject) => {
       const { event_id, customer_name, quantity } = purchaseData;

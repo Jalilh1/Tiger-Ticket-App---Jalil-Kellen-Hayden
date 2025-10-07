@@ -1,3 +1,9 @@
+/**
+ * Admin routes
+ * Brief: Express routes for admin event management.
+ * Exposes: GET/POST/PUT/DELETE /events
+ */
+
 const express = require('express');
 const router = express.Router();
 const adminController = require('../controllers/adminController');

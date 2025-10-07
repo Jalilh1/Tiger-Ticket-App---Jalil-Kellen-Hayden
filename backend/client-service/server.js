@@ -1,3 +1,9 @@
+/**
+ * Client service bootstrap
+ * Brief: Express app wiring for client-facing API.
+ * Side effects: Starts HTTP server and mounts /api/client routes.
+ */
+
 const express = require('express');
 const cors = require('cors');
 const app = express();

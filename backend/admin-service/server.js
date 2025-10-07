@@ -1,3 +1,9 @@
+/**
+ * Admin service bootstrap
+ * Brief: Express app wiring, CORS/JSON middleware, routes, DB initialization.
+ * Side effects: Starts HTTP server; initializes SQLite schema before listen.
+ * // WHY: Initialize DB before accepting traffic to avoid first-request race conditions.
+ */
 
 const express = require('express');
 const cors = require('cors');

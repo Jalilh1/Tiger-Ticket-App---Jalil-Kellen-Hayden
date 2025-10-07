@@ -1,6 +1,17 @@
+/**
+ * Client API controller
+ * Brief: HTTP handlers for listing/browsing events and purchasing tickets.
+ */
+
 const clientModel = require('../models/clientModel');
 
 const clientController = {
+
+  /**
+   * Purpose: List public events that have inventory.
+   * Params: (req, res)
+   * Returns/Side effects: JSON list; 500 on failure.
+   */
   listEvents: async (req, res) => {
     try {
       const events = await clientModel.getAllEvents();
@@ -10,6 +21,11 @@ const clientController = {
     }
   },
 
+  /**
+   * Purpose: Get single event details by id.
+   * Params: (req.params.id: string)
+   * Returns/Side effects: JSON event or 404/500.
+   */
   getEvent: async (req, res) => {
     try {
         const event = await clientModel.getEventById(req.params.id);
@@ -23,6 +39,11 @@ const clientController = {
     }
     },
 
+    /**
+ * Purpose: Purchase tickets for an event.
+ * Params: (req.body: { event_id:number, customer_name:string, customer_email:string, quantity:number})
+ * Returns/Side effects: 201 + JSON purchase summary; 400 on validation/availability errors.
+ */
     purchaseTicket: async (req, res) => {
         try {
             const result = await clientModel.purchaseTicket(req.body);
