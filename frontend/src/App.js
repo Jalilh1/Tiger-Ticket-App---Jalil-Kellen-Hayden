@@ -125,7 +125,18 @@ function App() {
                     {event.name}
                   </h2>
                   <p>
-                    <time dateTime={event.date}>{event.date}</time>
+                    <time 
+                    dateTime={event.date}
+                    aria-label={`Event date: ${new Date(event.date).toLocaleDateString('en-US', {
+                      weekday: 'long',
+                      month: 'long', 
+                      day: 'numeric', 
+                      year: 'numeric', 
+                    })}`}
+                    tabIndex="0"
+                    >
+                      {event.date}
+                    </time>
                   </p>
                   <p className="tickets-available" tabIndex="0">
                     {event.available_tickets} ticket(s) available
