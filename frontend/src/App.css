@@ -1,21 +1,64 @@
 /* 
- * App styles
- * Brief: Layout, accessible focus outline, event list cards, status & error styles.
- * Contains: .App, .message[role="status"], .error, list/card styles, button states.
+ * App styles — split layout
+ * Left: event list. Right: chatbot.
+ * Stacks on small screens.
  */
- 
+
+/* --- Page + layout --- */
+:root {
+  --purple: #522d80;
+  --orange: #f56600;
+  --orange-dark: #d45500;
+  --bg: #f5f5f5;
+  --card: #ffffff;
+  --shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+html, body, #root {
+  height: 100%;
+}
+
 .App {
-  text-align: center;
-  padding: 20px;
   min-height: 100vh;
-  background-color: #f5f5f5;
+  background-color: var(--bg);
+  display: flex;
+  flex-direction: column;
 }
 
+/* Header stays full width */
 h1 {
-  color: #522d80;
-  margin-bottom: 30px;
+  color: var(--purple);
+  margin: 20px auto 10px;
+  text-align: center;
 }
 
+/* Two-column split area */
+.split {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* 50/50 */
+  gap: 20px;
+  padding: 0 20px 30px;
+  align-items: start;
+}
+
+/* Left (events) */
+.left-pane {
+  width: 100%;
+}
+
+/* Right (chat) */
+.right-pane {
+  width: 100%;
+  position: relative;
+}
+
+/* Sticky chat so it stays in view while scrolling */
+.right-pane .chat-panel {
+  position: sticky;
+  top: 20px;
+}
+
+/* Status + errors */
 .message {
   background-color: #d4edda;
   border: 1px solid #c3e6cb;
@@ -28,43 +71,45 @@ h1 {
 }
 
 .message[role="status"] {
-  /* visually stronger for screen reader status updates */
   background-color: #e9f9ee;
   border-color: #b6e0b9;
   color: #1b5e20;
 }
 
-/* Focus outline for keyboard navigation */
-:focus {
-  outline: 3px solid #f56600;
-  outline-offset: 2px;
-}
-
 .error {
   color: #d32f2f;
   font-size: 18px;
+  text-align: center;
+  margin: 8px 0 16px;
 }
 
+/* Focus outline for keyboard navigation */
+:focus {
+  outline: 3px solid var(--orange);
+  outline-offset: 2px;
+}
+
+/* --- Event list (left pane) --- */
 ul {
   list-style: none;
   padding: 0;
-  max-width: 700px;
   margin: 0 auto;
+  max-width: 780px;
 }
 
 li {
-  background: white;
+  background: var(--card);
   margin: 15px 0;
   padding: 20px;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: var(--shadow);
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-/* Subtle Clemson orange tint on hover */
 li:hover {
+  /* subtle Clemson orange tint */
   background-color: #fff8f0;
 }
 
@@ -75,7 +120,7 @@ li:hover {
 
 .event-info h2 {
   font-size: 20px;
-  color: #522d80;
+  color: var(--purple);
   margin-bottom: 8px;
 }
 
@@ -85,7 +130,7 @@ li:hover {
 
 .event-info strong {
   font-size: 18px;
-  color: #522d80;
+  color: var(--purple);
 }
 
 .tickets-available {
@@ -94,24 +139,25 @@ li:hover {
 }
 
 .price {
-  color: #f56600;
+  color: var(--orange);
   font-weight: bold;
 }
 
+/* Buttons (shared) */
 button {
-  background-color: #f56600;
-  color: white;
+  background-color: var(--orange);
+  color: #fff;
   border: none;
   padding: 10px 20px;
-  border-radius: 5px;
+  border-radius: 6px;
   cursor: pointer;
   font-weight: bold;
   font-size: 14px;
-  transition: background-color 0.3s;
+  transition: background-color 0.2s ease;
 }
 
 button:hover:not(:disabled) {
-  background-color: #d45500;
+  background-color: var(--orange-dark);
 }
 
 button:disabled {
@@ -123,4 +169,74 @@ button.sold-out {
   background-color: #bbb;
   color: #fff;
   cursor: not-allowed;
+}
+
+/* --- Chat (right pane) --- */
+.chat-panel {
+  width: 100%;
+  max-width: 520px;
+  margin: 0 auto;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.12);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.chat-header {
+  background: #f5f2fb;
+  color: var(--purple);
+  padding: 12px 14px;
+  font-weight: 700;
+  border-bottom: 1px solid #eee;
+}
+
+.chat-body {
+  padding: 12px 14px;
+  overflow-y: auto;
+  max-height: 60vh;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.chat-msg { line-height: 1.35; }
+.chat-msg .chat-role { font-weight: 700; margin-right: 6px; }
+.chat-msg.assistant .chat-text { color: #333; }
+.chat-msg.user .chat-text { color: #1b5e20; }
+
+.chat-input {
+  display: flex;
+  gap: 8px;
+  padding: 12px 14px;
+  border-top: 1px solid #eee;
+}
+
+.chat-input input {
+  flex: 1;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+}
+
+.chat-input button {
+  background: var(--orange);
+  color: #fff;
+  border: 0;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-weight: 700;
+}
+
+/* --- Responsive: stack panes on narrow screens --- */
+@media (max-width: 900px) {
+  .split {
+    grid-template-columns: 1fr;
+  }
+  .right-pane .chat-panel {
+    position: static; /* disable sticky on small screens */
+    max-width: 640px;
+  }
+  ul { max-width: 640px; }
 }
