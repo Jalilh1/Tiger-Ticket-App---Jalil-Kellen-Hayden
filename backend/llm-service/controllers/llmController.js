@@ -1,3 +1,4 @@
+const TigerTixLLM = require('../models/llmModel');
 const llmModel = require('../models/llmModel');
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
@@ -17,7 +18,7 @@ const llmController = {
                 });
             }
 
-            const parsedIntent = await llmModel.parseBookingIntent(message);
+            const parsedIntent = await TigerTixLLM.parseBookingIntent(message);
 
             return res.status(200).json({
                 intent: parsedIntent.intent,
@@ -28,7 +29,7 @@ const llmController = {
         } catch (error) {
             console.error('LLM parsing error:', error);
 
-            const fallback = llmModel.keywordFallback(req.body && req.body.message ? req.body.message : '');
+            const fallback = TigerTixLLM.keywordFallback(req.body && req.body.message ? req.body.message : '');
             return res.status(500).json({
                 error: 'LLM parsing failed, using fallback',
                 ...fallback
