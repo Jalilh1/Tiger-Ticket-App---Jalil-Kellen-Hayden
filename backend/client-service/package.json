@@ -4,7 +4,12 @@
   "main": "index.js",
   "scripts": {
     "start": "node server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "cross-env NODE_ENV=test jest --runInBand --detectOpenHandles",
+    "test:watch": "npm test -- --watch",
+    "coverage": "npm test -- --coverage"
+  },
+  "jest": {
+    "testEnvironment": "node"
   },
   "keywords": [],
   "author": "",
