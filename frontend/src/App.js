@@ -13,6 +13,9 @@
 
 import React, { useEffect, useState } from 'react';
 import './App.css';
+import VoiceMic from './Components/VoiceMic';
+
+
 
 // If you proxy /api/llm in dev, leave empty; otherwise set http://localhost:5002
 const CLIENT_BASE = process.env.REACT_APP_CLIENT_BASE || 'http://localhost:3002';
@@ -179,6 +182,28 @@ function App() {
     setChatMsgs((m) => [...m, { role: 'assistant', text: 'I can show events or help you book.' }]);
   };
 
+  // --- Speech assistance --- //
+
+  function speak(text) {
+    if (!("speechSynthesis" in window)) return;
+    window.speechSynthesis.cancel(); // prevent overlap
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = "en-US";
+    u.rate = 0.95; // clear pacing
+    u.pitch = 1.0;
+    const voices = window.speechSynthesis.getVoices();
+    if (voices.length) u.voice = voices.find(v => /english/i.test(v.name)) || voices[0];
+    window.speechSynthesis.speak(u);
+  }
+
+  useEffect(() => {
+    if (!chatMsgs.length) return;
+    const last = chatMsgs[chatMsgs.length - 1];
+    if (last.role === 'assistant' && last.text) speak(last.text);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chatMsgs]);
+
+
   // ---------- Render ----------
   if (loading) {
     return (
@@ -296,14 +321,17 @@ function ChatWidget({ messages, onSend }) {
           </div>
         ))}
       </div>
-      <form className="chat-input" onSubmit={submit}>
+
+      <form className="chat-input" onSubmit={submit} style={{ display:"flex", gap:8, alignItems:"center" }}>
         <input
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Ask to show events or book tickets…"
           aria-label="Type a message"
+          style={{ flex: 1 }}
         />
+        <VoiceMic onSend={onSend} />
         <button type="submit">Send</button>
       </form>
     </section>
