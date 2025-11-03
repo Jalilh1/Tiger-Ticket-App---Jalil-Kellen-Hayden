@@ -172,8 +172,8 @@ function App() {
           quantity: qty
         });
         setChatMsgs((m) => [...m, { role: 'assistant', text: ok?.message || 'Booked!' }]);
-        await llmFetchEvents(); // update right pane availability
-        fetchEvents();      // update left pane availability
+        await llmFetchEvents(); //update right pane availability
+        fetchEvents();      //update left pane availability
       } catch (err) {
         setChatMsgs((m) => [...m, { role: 'assistant', text: `Booking failed: ${err.message}` }]);
       }
@@ -186,10 +186,10 @@ function App() {
 
   function speak(text) {
     if (!("speechSynthesis" in window)) return;
-    window.speechSynthesis.cancel(); // prevent overlap
+    window.speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(text);
     u.lang = "en-US";
-    u.rate = 0.95; // clear pacing
+    u.rate = 0.95; 
     u.pitch = 1.0;
     const voices = window.speechSynthesis.getVoices();
     if (voices.length) u.voice = voices.find(v => /english/i.test(v.name)) || voices[0];
@@ -200,7 +200,7 @@ function App() {
     if (!chatMsgs.length) return;
     const last = chatMsgs[chatMsgs.length - 1];
     if (last.role === 'assistant' && last.text) speak(last.text);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+ 
   }, [chatMsgs]);
 
 
@@ -300,7 +300,7 @@ function App() {
 
 export default App;
 
-/** Minimal chat widget that renders .chat-panel structure */
+// ---------- Chat widget component ----------//
 function ChatWidget({ messages, onSend }) {
   const [input, setInput] = useState('');
   const submit = (e) => {
