@@ -9,6 +9,9 @@
  *  - ARIA roles/labels for status, list, buttons.
  *  - tabIndex="0" on key elements.
  *  - aria-live="polite" for dynamic status messages.
+ *  - Voice Synthesis for chat assistant responses
+ * A
+ * 
  */
 
 import React, { useEffect, useState } from 'react';
