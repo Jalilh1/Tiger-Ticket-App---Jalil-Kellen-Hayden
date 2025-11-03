@@ -1,9 +1,18 @@
+/**
+ * File: llmModel.js
+ * Brief: LLM prompts/parsing and keyword fallback for TigerTix intents.
+ */
 const { HfInference } = require('@huggingface/inference');
 require('dotenv').config({ path: '../.env' });
 
 const hf = new HfInference(process.env.HUGGINGFACE_API_KEY);
 
 const TigerTixLLM = {
+  /**
+   * Purpose: Prompt the LLM to extract { intent, event_name, quantity, confidence } from user text.
+   * Params: (userMessage: string)
+   * Returns/Side effects: Parsed JSON on success; fallback JSON on API/parse errors. Calls HF textGeneration.
+   */
   parseBookingIntent: async (userMessage) => {
     try {
       const systemPrompt = `
@@ -51,7 +60,7 @@ const TigerTixLLM = {
       const trimmed = String(llmOutput).trim();
       console.log('LLM Output:', trimmed);
 
-
+      
       let parsedIntent;
       try {
         const jsonMatch = trimmed.match(/\{[\s\S]*\}/);
@@ -83,7 +92,11 @@ const TigerTixLLM = {
       return TigerTixLLM.keywordFallback(userMessage);
     }
   },
-
+  /**
+   * Purpose: Lightweight rule-based intent extraction when LLM output is unavailable/invalid.
+   * Params: (message: string)
+   * Returns/Side effects: { intent, event_name|null, quantity|null, confidence } — no external effects.
+   */
   keywordFallback: (message) => {
     const lowerMsg = message.toLowerCase();
 

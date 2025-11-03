@@ -1,3 +1,7 @@
+/**
+ * File: server.js
+ * Brief: Express bootstrap for LLM service; mounts /api/llm routes and health root.
+ */
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config({ path: '../../.env' });
