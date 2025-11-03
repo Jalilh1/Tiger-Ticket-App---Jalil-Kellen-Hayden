@@ -1,18 +1,4 @@
-/**
- * App (React component)
- * Purpose: Fetch and display campus events; allow ticket purchase.
- * Params: none (uses internal state + browser fetch).
- * Returns: JSX tree with split layout: left (events) / right (chat).
- * Side effects: Client API calls (/api/client/*) and LLM API calls (/api/llm/*).
- *
- * Accessibility:
- *  - ARIA roles/labels for status, list, buttons.
- *  - tabIndex="0" on key elements.
- *  - aria-live="polite" for dynamic status messages.
- *  - Voice Synthesis for chat assistant responses
- * A
- * 
- */
+
 
 import React, { useEffect, useState } from 'react';
 import './App.css';
@@ -32,7 +18,7 @@ function App() {
   const [message, setMessage] = useState('');
 
   // Right pane (chat UI + LLM service state)
-  const [chatOpen] = useState(true); // chat is visible in right pane (no FAB)
+  const [chatOpen] = useState(true); 
   const [chatMsgs, setChatMsgs] = useState([
     { role: 'assistant', text: 'Hi! I can show events or help you book.' }
   ]);
