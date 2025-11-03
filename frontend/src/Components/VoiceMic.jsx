@@ -90,12 +90,12 @@ export default function VoiceMic({ onSend }) {
           display: "flex", alignItems: "center", justifyContent: "center",
           border: "none",
           cursor: "pointer",
-          background: recording ? "#b91c1c" : "#dc2626",
+          background: recording ? "#c05619f" : "#c05619f",
           color: "#fff",
           boxShadow: "0 2px 8px rgba(0,0,0,0.2)"
         }}
       >
-        {/* Generic mic icon (SVG) — not an emoji */}
+        
         <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
           <path d="M12 14a3 3 0 003-3V5a3 3 0 10-6 0v6a3 3 0 003 3zm5-3a5 5 0 01-10 0H5a7 7 0 0014 0h-2zm-5 9a1 1 0 001-1v-2h-2v2a1 1 0 001 1z"/>
         </svg>
