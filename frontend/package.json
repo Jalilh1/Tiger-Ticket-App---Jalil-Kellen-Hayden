@@ -13,18 +13,14 @@
     "react-scripts": "5.0.1",
     "web-vitals": "^2.1.4"
   },
-  "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "jest --env=jsdom",
-    "test:watch": "npm test -- --watch",
-    "coverage": "npm test -- --coverage",
-    "eject": "react-scripts eject"
-  },
-  "jest": {
-    "testEnvironment": "jsdom",
-    "setupFilesAfterEnv": ["<rootDir>/src/setUpTests.js"]
-  },
+"scripts": {
+  "start": "react-scripts start",
+  "build": "react-scripts build",
+  "test": "react-scripts test",
+  "test:watch": "react-scripts test --watch",
+  "coverage": "react-scripts test --coverage",
+  "eject": "react-scripts eject"
+},
   "eslintConfig": {
     "extends": [
       "react-app",
