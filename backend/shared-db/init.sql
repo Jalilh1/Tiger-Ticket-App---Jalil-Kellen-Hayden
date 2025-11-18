@@ -1,8 +1,15 @@
 /*
   SQLite DB Intialization Script and table schema.
-  Purpose: Initialize SQLite database with events and purchases tables.
+  Purpose: Initialize SQLite database with events, users, and purchases tables.
   Side effects: Creates tables if not exist and seeds initial event data.
 */
+CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    email TEXT UNIQUE NOT NULL,
+    name TEXT NOT NULL,
+    password_hash TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT (datetime('now'))
+);
 
 CREATE TABLE IF NOT EXISTS events (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -15,11 +22,11 @@ CREATE TABLE IF NOT EXISTS events (
 CREATE TABLE IF NOT EXISTS purchases (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     event_id INT NOT NULL,
-    customer_name TEXT NOT NULL,
-    customer_email TEXT NOT NULL,
+    user_id INT NOT NULL,
     quantity INT DEFAULT 1,
     purchase_date TIMESTAMP DEFAULT (datetime('now')),
     FOREIGN KEY (event_id) REFERENCES events(id)
+    FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
 INSERT OR IGNORE INTO events (id, name, date, capacity, available_tickets) VALUES
