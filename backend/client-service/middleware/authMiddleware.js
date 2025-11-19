@@ -6,6 +6,8 @@ const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret';
 const authMiddleware = (req, res, next) => {
   try {
     console.log('CLIENT SERVICE auth header:', req.headers.authorization);
+    console.log('JWT_SECRET in middleware:', JWT_SECRET);
+    console.log('Is fallback?', JWT_SECRET === 'fallback_secret');
     // Get token from Authorization header
     const authHeader = req.headers.authorization;
 

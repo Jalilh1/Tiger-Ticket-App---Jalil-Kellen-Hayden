@@ -4,12 +4,12 @@
  */
 const express = require('express');
 const cors = require('cors');
-require('dotenv').config({ path: './.env' });
+require('dotenv').config({ path: '../.env' });
 
 const llmRoutes = require('./routes/llmRoutes');
 
 const app = express();
-const PORT = process.env.PORT || 5003;
+const PORT=5003;
 
 app.use(cors());
 app.use(express.json());  
