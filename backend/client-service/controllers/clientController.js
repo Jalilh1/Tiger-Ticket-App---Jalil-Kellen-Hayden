@@ -44,14 +44,37 @@ const clientController = {
  * Params: (req.body: { event_id:number, customer_name:string, customer_email:string, quantity:number})
  * Returns/Side effects: 201 + JSON purchase summary; 400 on validation/availability errors.
  */
-    purchaseTicket: async (req, res) => {
-        try {
-            const result = await clientModel.purchaseTicket(req.body);
-            res.status(201).json(result);
-        } catch (error) {
-            res.status(400).json({ error: error.message });
-        }
+  purchaseTicket: async (req, res) => {
+    try {
+      const { event_id, quantity } = req.body;
+      const user_id = req.userId; // From JWT middleware
+
+      // Validation
+      if (!event_id || !quantity) {
+        return res.status(400).json({ 
+          error: 'Event ID and quantity are required' 
+        });
+      }
+
+      if (quantity < 1 || quantity > 10) {
+        return res.status(400).json({ 
+          error: 'Quantity must be between 1 and 10' 
+        });
+      }
+
+      // Purchase tickets
+      const result = await clientModel.purchaseTicket({
+        event_id,
+        user_id,
+        quantity
+      });
+
+      res.status(201).json(result);
+
+    } catch (error) {
+      res.status(400).json({ error: error.message });
     }
+  }
 };
 
 module.exports = clientController;

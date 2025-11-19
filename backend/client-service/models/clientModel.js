@@ -6,6 +6,8 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 
+const authMiddleware = require('../middleware/authMiddleware');
+
 const dbPath = path.join(__dirname, '../../shared-db/database.sqlite');
 
 function getDbConnection() {
@@ -61,7 +63,7 @@ const clientModel = {
  */
   purchaseTicket: (purchaseData) => {
     return new Promise((resolve, reject) => {
-      const { event_id, customer_name, quantity } = purchaseData;
+      const { event_id, user_id, quantity } = purchaseData;
       const db = getDbConnection();
 
       //Start transaction
@@ -88,8 +90,8 @@ const clientModel = {
 
           //Insert purchase
           db.run(
-            'INSERT INTO purchases (event_id, customer_name, customer_email, quantity) VALUES (?, ?, ?, ?)',
-            [event_id, customer_name, quantity],
+            'INSERT INTO purchases (event_id, user_id, quantity) VALUES (?, ?, ?)',
+            [event_id, user_id, quantity],
             function(err) {
               if (err) {
                 db.close();
@@ -109,7 +111,7 @@ const clientModel = {
                   else resolve({ 
                     id: purchaseId, 
                     event_id, 
-                    customer_name, 
+                    user_id, 
                     quantity,
                     message: 'Ticket purchased successfully!' 
                   });

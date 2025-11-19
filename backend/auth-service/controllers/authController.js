@@ -32,7 +32,7 @@ const authController = {
             const user = await authModel.registerUser({ email, name, password });
 
             const token = jwt.sign(
-                { id: user.id, email: user.email, name: user.name },
+                { userId: user.id, email: user.email, name: user.name },
                 JWT_SECRET,
                 { expiresIn: JWT_EXPIRES_IN }
             );
@@ -80,7 +80,7 @@ const authController = {
             }
 
             const token = jwt.sign(
-                { id: user.id, email: user.email, name: user.name },
+                { userId: user.id, email: user.email, name: user.name },
                 JWT_SECRET,
                 { expiresIn: JWT_EXPIRES_IN }
             );
@@ -103,7 +103,7 @@ const authController = {
     getCurrentUser: async (req, res) => {
         try {
             
-            const user = await authModel.getUserById(req.user.id);
+            const user = await authModel.getUserById(req.userId);
 
             if (!user) {
                 return res.status(404).json({ 

@@ -19,12 +19,9 @@ const authMiddleware = (req, res, next) => {
 
         const decoded = jwt.verify(token, JWT_SECRET);
 
-        req.user = {
-            id: decoded.id,
-            email: decoded.email,
-            name: decoded.name
-        };
-
+        req.userId = decoded.userId;
+        req.userEmail = decoded.email;
+        
         next();
     } catch (error) {
         if (error.name === 'TokenExpiredError') {
