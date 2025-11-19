@@ -3,6 +3,8 @@ const llmModel = require('../models/llmModel');
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 
+const authMiddleware = require('../middleware/authMiddleware');
+
 const dbPath = path.join(__dirname, '../../shared-db/database.sqlite');
 
 const llmController = {
@@ -60,11 +62,12 @@ const llmController = {
     },
 
     confirmBooking: (req, res) => {
-        const { event_id, customer_name, customer_email, quantity } = req.body;
+        const { event_id, quantity } = req.body;
+        const user_id = req.userId;
 
-        if (!event_id || !customer_name || !customer_email || !quantity) {
+        if (!event_id || !quantity) {
             return res.status(400).json({
-                error: 'Missing required fields: event_id, customer_name, customer_email, quantity'
+                error: 'Missing required fields: event_id, quantity'
             });
         }
 
@@ -109,8 +112,8 @@ const llmController = {
                     }
 
                     db.run(
-                        'INSERT INTO purchases (event_id, customer_name, customer_email, quantity) VALUES (?, ?, ?, ?)',
-                        [event_id, customer_name, customer_email, quantity],
+                        'INSERT INTO purchases (event_id, user_id, quantity) VALUES (?, ?, ?)',
+                        [event_id, user_id, quantity],
                         function (insertErr) {
                             if (insertErr) {
                                 db.run('ROLLBACK');
@@ -145,8 +148,6 @@ const llmController = {
                                             event_id: event_id,
                                             event_name: event.name,
                                             quantity: quantity,
-                                            customer_name: customer_name,
-                                            customer_email: customer_email
                                         });
                                     });
                                 }

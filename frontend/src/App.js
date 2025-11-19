@@ -1,13 +1,16 @@
 /**
  * File: App.js
- * Brief: Split UI (events left, chat right). Supports typed chat + fully voice-driven flow.
- * Services: Client API (http://localhost:3002/api/client/*), LLM API (http://localhost:5002/api/llm/*).
+ * Brief: Split UI (events left, chat right). Supports typed chat + fully voice-driven flow with authentication.
+ * Services: Auth API (http://localhost:3004/api/auth/*), Client API (http://localhost:3002/api/client/*), LLM API (http://localhost:3003/api/llm/*).
  * Accessibility: ARIA roles/labels; aria-live for updates; keyboard focus on key text/actions.
  */
 
 import React, { useEffect, useState } from 'react';
 import './App.css';
 import VoiceMic from './Components/VoiceMic';
+import { AuthProvider, useAuth } from './context/authContext';
+import Login from './Components/Login';
+import Register from './Components/Register';
 
 /**
  * Purpose: Configure service base URLs for multi-service local dev.
@@ -15,35 +18,40 @@ import VoiceMic from './Components/VoiceMic';
  * Returns/Side effects: None (constants used by fetch calls).
  */
 const CLIENT_BASE = process.env.REACT_APP_CLIENT_BASE || 'http://localhost:3002';
-const LLM_BASE    = process.env.REACT_APP_LLM_BASE    || 'http://localhost:5002';
+const LLM_BASE = process.env.REACT_APP_LLM_BASE || 'http://localhost:5003';
 
 /**
  * Purpose: Root React component rendering events (left) and chatbot (right).
  * Params: none
  * Returns/Side effects: JSX tree; triggers network requests via helper functions.
  */
-function App() {
+function AppContent() {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [message, setMessage] = useState('');
 
-  const [chatOpen] = useState(true); 
+  const [chatOpen] = useState(true);
   const [chatMsgs, setChatMsgs] = useState([
     { role: 'assistant', text: 'Hi! I can show events or help you book.' }
   ]);
   const [chatEvents, setChatEvents] = useState([]);
 
-  useEffect(() => {
-    fetchEvents();
-  }, []);
+  const { user, token, loading: authLoading, logout } = useAuth();
+  const [showRegister, setShowRegister] = useState(false);
 
-/**
- * fetchEvents
- * Purpose: Load event list for the left pane from the Client service.
- * Params: none
- * Returns/Side effects: Sets (events, loading, error); GET /api/client/events.
- */
+  useEffect(() => {
+    if (user) {
+      fetchEvents();
+    }
+  }, [user]);
+
+  /**
+   * fetchEvents
+   * Purpose: Load event list for the left pane from the Client service.
+   * Params: none
+   * Returns/Side effects: Sets (events, loading, error); GET /api/client/events.
+   */
   const fetchEvents = () => {
     fetch(`${CLIENT_BASE}/api/client/events`)
       .then((res) => {
@@ -61,50 +69,66 @@ function App() {
       });
   };
 
-/**
- * buyTicket
- * Purpose: Collect purchaser info and submit a purchase via Client service.
- * Params: (eventId: number, eventName: string)
- * Returns/Side effects: Prompts user; POST /api/client/purchase; sets success/error message; refreshes events.
- */
+  /**
+   * buyTicket
+   * Purpose: Purchase ticket using authenticated user (no prompts for name/email).
+   * Params: (eventId: number, eventName: string)
+   * Returns/Side effects: POST /api/client/purchase with JWT; sets success/error message; refreshes events.
+   */
   const buyTicket = (eventId, eventName) => {
-    const customerName = prompt('Enter your name:');
-    if (!customerName) return alert('Name is required to buy a ticket.');
-    const customerEmail = prompt('Enter your email:');
-    if (!customerEmail) return alert('Email is required to buy a ticket.');
     const quantityStr = prompt('Enter number of tickets to buy:');
     const quantity = parseInt(quantityStr, 10);
-    if (isNaN(quantity) || quantity <= 0) return alert('Please enter a valid number of tickets.');
+    if (isNaN(quantity) || quantity <= 0) {
+      return alert('Please enter a valid number of tickets.');
+    }
+
+    console.log(' buyTicket: Sending request with token:', token);
 
     fetch(`${CLIENT_BASE}/api/client/purchase`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}` // JWT token
+      },
       body: JSON.stringify({
         event_id: eventId,
-        customer_name: customerName,
-        customer_email: customerEmail,
         quantity
       })
     })
-      .then((res) => res.ok ? res.json() : res.json().then(err => { throw new Error(err.error || 'Failed to purchase tickets'); }))
+      .then((res) => {
+        if (!res.ok) {
+          return res.json().then(err => {
+            if (err.requiresAuth || err.expired) {
+              throw new Error('Session expired. Please log in again.');
+            }
+            throw new Error(err.error || 'Failed to purchase tickets');
+          });
+        }
+        return res.json();
+      })
       .then(() => {
-        setMessage(`Successfully purchased ${quantity} ticket(s) for ${eventName}`);
+        setMessage(`✅ Successfully purchased ${quantity} ticket(s) for ${eventName}`);
         setTimeout(() => setMessage(''), 3000);
         fetchEvents(); // refresh left pane
       })
       .catch((err) => {
-        setMessage('Error purchasing tickets: ' + err.message);
-        setTimeout(() => setMessage(''), 5000);
+        if (err.message.includes('Session expired')) {
+          setMessage('❌ Session expired. Logging out...');
+          setTimeout(() => logout(), 2000);
+        } else {
+          setMessage('❌ Error purchasing tickets: ' + err.message);
+          setTimeout(() => setMessage(''), 5000);
+        }
         console.error('Purchase error:', err);
       });
   };
 
-/**
- * llmParse
- * Purpose: Send free-text to LLM /parse to extract intent and fields.
- * Params: (text: string)
- * Returns/Side effects: Resolves { intent, event_name, quantity, confidence }; throws on non-2xx.
- */
+  /**
+   * llmParse
+   * Purpose: Send free-text to LLM /parse to extract intent and fields.
+   * Params: (text: string)
+   * Returns/Side effects: Resolves { intent, event_name, quantity, confidence }; throws on non-2xx.
+   */
   const llmParse = async (text) => {
     const res = await fetch(`${LLM_BASE}/api/llm/parse`, {
       method: 'POST',
@@ -112,14 +136,15 @@ function App() {
       body: JSON.stringify({ message: text })
     });
     if (!res.ok) throw new Error(`LLM parse failed: ${res.status}`);
-    return res.json(); // { intent, event_name, quantity, confidence }
+    return res.json();
   };
-/**
- * llmFetchEvents
- * Purpose: Get events (with availability) from LLM service for chat-side display.
- * Params: none
- * Returns/Side effects: Sets chatEvents; returns array; GET /api/llm/events.
- */
+
+  /**
+   * llmFetchEvents
+   * Purpose: Get events (with availability) from LLM service for chat-side display.
+   * Params: none
+   * Returns/Side effects: Sets chatEvents; returns array; GET /api/llm/events.
+   */
   const llmFetchEvents = async () => {
     const res = await fetch(`${LLM_BASE}/api/llm/events`);
     if (!res.ok) throw new Error(`LLM events failed: ${res.status}`);
@@ -128,29 +153,38 @@ function App() {
     return data;
   };
 
-/**
- * llmConfirmBooking
- * Purpose: Persist a confirmed booking through the LLM endpoint.
- * Params: ({ event_id: number, customer_name: string, customer_email: string, quantity: number })
- * Returns/Side effects: Returns JSON summary; throws on error; POST /api/llm/confirm_booking; refresh is triggered by caller.
- */
-  const llmConfirmBooking = async ({ event_id, customer_name, customer_email, quantity }) => {
+  /**
+   * llmConfirmBooking
+   * Purpose: Persist a confirmed booking through the LLM endpoint with JWT auth.
+   * Params: ({ event_id: number, quantity: number })
+   * Returns/Side effects: Returns JSON summary; throws on error; POST /api/llm/confirm-booking; uses user from JWT.
+   */
+  const llmConfirmBooking = async ({ event_id, quantity }) => {
+    console.log('llmConfirmBooking: Token =', token);
     const res = await fetch(`${LLM_BASE}/api/llm/confirm_booking`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ event_id, customer_name, customer_email, quantity })
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}` // JWT token
+      },
+      body: JSON.stringify({ event_id, quantity })
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data?.error || 'Booking failed');
+    if (!res.ok) {
+      if (data.requiresAuth || data.expired) {
+        throw new Error('Session expired. Please log in again.');
+      }
+      throw new Error(data?.error || 'Booking failed');
+    }
     return data;
   };
 
-/**
- * handleUserChat
- * Purpose: Append user's text to chat and route it to LLM parsing.
- * Params: (userText: string)
- * Returns/Side effects: Updates chatMsgs; on error, shows assistant error message.
- */
+  /**
+   * handleUserChat
+   * Purpose: Append user's text to chat and route it to LLM parsing.
+   * Params: (userText: string)
+   * Returns/Side effects: Updates chatMsgs; on error, shows assistant error message.
+   */
   const handleUserChat = async (userText) => {
     setChatMsgs((m) => [...m, { role: 'user', text: userText }]);
     try {
@@ -162,14 +196,14 @@ function App() {
   };
 
   /**
- * handleParsedIntent
- * Purpose: Drive chat responses from LLM output (greeting/view_events/book).
- * Params: ({ intent: "greeting"|"view_events"|"book"|"unknown", event_name?: string|null, quantity?: number|null })
- * Returns/Side effects: Sends assistant replies; may propose booking; on booking success refreshes both panes.
- */
+   * handleParsedIntent
+   * Purpose: Drive chat responses from LLM output (greeting/view_events/book) with authentication.
+   * Params: ({ intent: "greeting"|"view_events"|"book"|"unknown", event_name?: string|null, quantity?: number|null })
+   * Returns/Side effects: Sends assistant replies; may propose booking; on booking success refreshes both panes.
+   */
   const handleParsedIntent = async ({ intent, event_name, quantity }) => {
     if (intent === 'greeting') {
-      setChatMsgs((m) => [...m, { role: 'assistant', text: 'Hello! Ask me to show events or to book.' }]);
+      setChatMsgs((m) => [...m, { role: 'assistant', text: `Hello ${user.name}! Ask me to show events or to book.` }]);
       return;
     }
     if (intent === 'view_events') {
@@ -178,7 +212,7 @@ function App() {
         setChatMsgs((m) => [...m, { role: 'assistant', text: 'No events with tickets available.' }]);
         return;
       }
-      const names = list.map(e => `• ${e.name} (${new Date(e.date).toLocaleString()})`).join('\n');
+      const names = list.map(e => `• ${e.name} (${new Date(e.date).toLocaleDateString()})`).join('\n');
       setChatMsgs((m) => [...m, { role: 'assistant', text: `Here are available events:\n${names}` }]);
       return;
     }
@@ -192,95 +226,131 @@ function App() {
         setChatMsgs((m) => [...m, { role: 'assistant', text: 'Which event would you like to book?' }]);
         return;
       }
-      const customer_name = window.prompt(`Your name for "${match.name}"?`);
-      const customer_email = window.prompt('Your email?');
+
+      // No need to prompt for name/email - use authenticated user
       let qty = quantity && Number(quantity) > 0 ? Number(quantity) : null;
       if (!qty) qty = Number(window.prompt('How many tickets? (number)') || '0');
-      if (!customer_name || !customer_email || !qty) {
-        setChatMsgs((m) => [...m, { role: 'assistant', text: 'Booking canceled (missing info).' }]);
+      if (!qty) {
+        setChatMsgs((m) => [...m, { role: 'assistant', text: 'Booking canceled (invalid quantity).' }]);
         return;
       }
+
       try {
         const ok = await llmConfirmBooking({
           event_id: match.id,
-          customer_name,
-          customer_email,
           quantity: qty
         });
-        setChatMsgs((m) => [...m, { role: 'assistant', text: ok?.message || 'Booked!' }]);
-        await llmFetchEvents(); //update right pane availability
-        fetchEvents();      //update left pane availability
+        setChatMsgs((m) => [...m, { 
+          role: 'assistant', 
+          text: `✅ ${ok?.message || 'Booked!'} Confirmation ID: #${ok.purchase_id}` 
+        }]);
+        await llmFetchEvents(); // update right pane availability
+        fetchEvents(); // update left pane availability
       } catch (err) {
-        setChatMsgs((m) => [...m, { role: 'assistant', text: `Booking failed: ${err.message}` }]);
+        if (err.message.includes('Session expired')) {
+          setChatMsgs((m) => [...m, { role: 'assistant', text: '❌ Session expired. Please log in again.' }]);
+          setTimeout(() => logout(), 2000);
+        } else {
+          setChatMsgs((m) => [...m, { role: 'assistant', text: `❌ Booking failed: ${err.message}` }]);
+        }
       }
       return;
     }
     setChatMsgs((m) => [...m, { role: 'assistant', text: 'I can show events or help you book.' }]);
   };
 
-/**
- * Speech assistance (TTS)
- * Purpose: Provide simple text-to-speech for assistant replies.
- * Params: (browser SpeechSynthesis)
- * Returns/Side effects: Speaks assistant messages; cancels any in-progress speech first.
- */
-
-/**
- * speak
- * Purpose: Read a string aloud using Speech Synthesis.
- * Params: (text: string)
- * Returns/Side effects: Cancels any current utterance; speaks with en-US, steady rate/pitch.
- */
+  /**
+   * speak
+   * Purpose: Read a string aloud using Speech Synthesis.
+   * Params: (text: string)
+   * Returns/Side effects: Cancels any current utterance; speaks with en-US, steady rate/pitch.
+   */
   function speak(text) {
     if (!("speechSynthesis" in window)) return;
     window.speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(text);
     u.lang = "en-US";
-    u.rate = 0.95; 
+    u.rate = 0.95;
     u.pitch = 1.0;
     const voices = window.speechSynthesis.getVoices();
     if (voices.length) u.voice = voices.find(v => /english/i.test(v.name)) || voices[0];
     window.speechSynthesis.speak(u);
   }
 
-/**
- * useEffect (announce assistant replies)
- * Purpose: Auto-speak the last assistant message when chat updates.
- * Params: (deps: [chatMsgs])
- * Returns/Side effects: Invokes speak() when the newest message is role='assistant'.
- */
+  /**
+   * useEffect (announce assistant replies)
+   * Purpose: Auto-speak the last assistant message when chat updates.
+   * Params: (deps: [chatMsgs])
+   * Returns/Side effects: Invokes speak() when the newest message is role='assistant'.
+   */
   useEffect(() => {
     if (!chatMsgs.length) return;
     const last = chatMsgs[chatMsgs.length - 1];
     if (last.role === 'assistant' && last.text) speak(last.text);
- 
   }, [chatMsgs]);
 
-/**
- * Render (loading)
- * Purpose: Show app shell + loading state while fetching events.
- * Params: none
- * Returns/Side effects: Static JSX; no network calls.
- */
+  /**
+   * Render (auth loading)
+   * Purpose: Show loading state while checking authentication.
+   */
+  if (authLoading) {
+    return (
+      <div className="App">
+        <h1>TigerTix</h1>
+        <p>Loading...</p>
+      </div>
+    );
+  }
+
+  /**
+   * Render (not authenticated)
+   * Purpose: Show login/register forms if user is not logged in.
+   */
+  if (!user) {
+    return showRegister ? (
+      <Register onSwitchToLogin={() => setShowRegister(false)} />
+    ) : (
+      <Login onSwitchToRegister={() => setShowRegister(true)} />
+    );
+  }
+
+  /**
+   * Render (loading events)
+   * Purpose: Show app shell + loading state while fetching events.
+   */
   if (loading) {
     return (
       <main className="App" role="main">
-        <h1>Clemson Tiger Tix</h1>
+        <header className="app-header">
+          <h1>Clemson Tiger Tix</h1>
+          <div className="user-info">
+            <span>Welcome, {user.name}!</span>
+            <button onClick={logout} className="logout-btn">
+              Logout
+            </button>
+          </div>
+        </header>
         <p>Loading events...</p>
       </main>
     );
   }
 
-/**
- * Render (error)
- * Purpose: Present an accessible error message if events fetch failed.
- * Params: none
- * Returns/Side effects: Static JSX with role="alert".
- */
+  /**
+   * Render (error)
+   * Purpose: Present an accessible error message if events fetch failed.
+   */
   if (error) {
     return (
       <main className="App" role="main">
-        <h1 tabIndex="0">Clemson Campus Events</h1>
+        <header className="app-header">
+          <h1 tabIndex="0">Clemson Campus Events</h1>
+          <div className="user-info">
+            <span>Welcome, {user.name}!</span>
+            <button onClick={logout} className="logout-btn">
+              Logout
+            </button>
+          </div>
+        </header>
         <p className="error" role="alert">{error}</p>
       </main>
     );
@@ -288,7 +358,15 @@ function App() {
 
   return (
     <main className="App" role="main">
-      <h1 tabIndex="0">Clemson Tiger Tix</h1>
+      <header className="app-header">
+        <h1 tabIndex="0">🐅 Clemson Tiger Tix</h1>
+        <div className="user-info">
+          <span>Welcome, {user.name}!</span>
+          <button onClick={logout} className="logout-btn">
+            Logout
+          </button>
+        </div>
+      </header>
 
       <div className="split">
         {/* LEFT: existing site */}
@@ -328,6 +406,11 @@ function App() {
                     <p className="tickets-available" tabIndex="0">
                       {event.available_tickets} ticket(s) available
                     </p>
+                    {event.price > 0 && (
+                      <p className="price" tabIndex="0">
+                        ${event.price.toFixed(2)}
+                      </p>
+                    )}
                     <button
                       onClick={() => buyTicket(event.id, event.name)}
                       disabled={event.available_tickets === 0}
@@ -347,7 +430,6 @@ function App() {
           )}
         </section>
 
-
         <aside className="right-pane" aria-label="Chat Assistant">
           {chatOpen && (
             <ChatWidget
@@ -358,6 +440,17 @@ function App() {
         </aside>
       </div>
     </main>
+  );
+}
+
+/**
+ * App wrapper with AuthProvider
+ */
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }
 
@@ -380,7 +473,7 @@ function ChatWidget({ messages, onSend }) {
   };
   return (
     <section className="chat-panel" aria-label="TigerTix Chat Assistant">
-      <header className="chat-header">Assistant</header>
+      <header className="chat-header">🐅 Assistant</header>
       <div className="chat-body" role="log" aria-live="polite" aria-relevant="additions">
         {messages.map((m, i) => (
           <div key={i} className={`chat-msg ${m.role}`} tabIndex="0">
@@ -390,7 +483,7 @@ function ChatWidget({ messages, onSend }) {
         ))}
       </div>
 
-      <form className="chat-input" onSubmit={submit} style={{ display:"flex", gap:8, alignItems:"center" }}>
+      <form className="chat-input" onSubmit={submit} style={{ display: "flex", gap: 8, alignItems: "center" }}>
         <input
           type="text"
           value={input}
