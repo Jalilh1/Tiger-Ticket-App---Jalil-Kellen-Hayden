@@ -9,15 +9,15 @@ This repository contains the **full system**, including frontend, backend micros
 ---
 
 ## Live Deployment  
-Frontend (Vercel): *your URL here*  
+Frontend (Vercel): 
 Backend Services (Render/Railway):  
-- Client Service: *your URL*  
-- Admin Service: *your URL*  
-- LLM Service: *your URL*  
+- Client Service:   
+- Admin Service: 
+- LLM Service: 
 
 GitHub Repository: https://github.com/Jalilh1/Tiger-Ticket-App---Jalil-Kellen-Hayden
 
-Demo Video (2 minutes): *link here*
+Demo Video (2 minutes): 
 
 ---
 
