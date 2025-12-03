@@ -1,10 +1,15 @@
 const jwt = require('jsonwebtoken');
 require('dotenv').config({ path: '../.env' });
 
-const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret';
-
 const authMiddleware = (req, res, next) => {
   try {
+    const JWT_SECRET = process.env.JWT_SECRET;
+    
+    if (!JWT_SECRET) {
+      console.error('JWT_SECRET is not set!');
+      return res.status(500).json({ error: 'Server configuration error' });
+    }
+    
     console.log('CLIENT SERVICE auth header:', req.headers.authorization);
     console.log('JWT_SECRET in middleware:', JWT_SECRET);
     console.log('Is fallback?', JWT_SECRET === 'fallback_secret');

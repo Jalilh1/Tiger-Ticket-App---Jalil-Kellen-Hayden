@@ -5,7 +5,7 @@ const path = require('path');
 
 const authMiddleware = require('../middleware/authMiddleware');
 
-const dbPath = path.join(__dirname, '../../shared-db/database.sqlite');
+const dbPath = process.env.DATABASE_PATH || path.join(__dirname, '../../shared-db/database.sqlite');
 
 const llmController = {
     // Parse a free-text message using the LLM and return the extracted intent

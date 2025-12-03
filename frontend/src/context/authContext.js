@@ -55,7 +55,6 @@ export function AuthProvider({ children }) {
 
     const login = async (email, password) => {
         try {
-            // CHANGED: use AUTH_URL
             const response = await fetch(`${AUTH_URL}/api/auth/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -67,7 +66,6 @@ export function AuthProvider({ children }) {
             const data = text ? (() => { try { return JSON.parse(text); } catch { return { error: text }; } })() : {};
 
             if (response.ok) {
-                // CHANGED: accept both shapes
                 const receivedToken = data.token;
                 const resolvedUser = data?.user ?? data;
 
@@ -89,7 +87,6 @@ export function AuthProvider({ children }) {
 
     const register = async (email, name, password) => {
         try {
-            // CHANGED: use AUTH_URL
             const response = await fetch(`${AUTH_URL}/api/auth/register`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },

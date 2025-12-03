@@ -3,7 +3,7 @@ const path = require('path');
 const bcrypt = require('bcryptjs');
 const { verify } = require('crypto');
 
-const dbPath = path.join(__dirname, '../../shared-db/database.sqlite');
+const dbPath = process.env.DATABASE_PATH || path.join(__dirname, '../../shared-db/database.sqlite');
 
 function getDBConnection() {
     return new sqlite3.Database(dbPath, (err) => {
