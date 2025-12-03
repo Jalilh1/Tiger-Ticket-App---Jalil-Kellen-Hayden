@@ -214,13 +214,6 @@ cd frontend
 npm test
 ```
 
-Covers:  
-✔ Microservice routes  
-✔ LLM parsing  
-✔ Authentication logic  
-✔ Chat interface  
-✔ Accessibility behavior  
-
 ---
 
 # CI/CD (GitHub Actions)
