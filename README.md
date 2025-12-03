@@ -1,5 +1,4 @@
-# Tiger-Ticket-App---Jalil-Kellen-Hayden
-# TigerTix – Accessible Event Booking System  
+# Tiger-Ticket-App---Jalil-Kellen-Hayden - Tiger Tix 
 **Microservices + React + LLM + Voice Interface**
 
 TigerTix is an accessible, event-booking platform built using a microservices architecture.  
@@ -9,7 +8,7 @@ This repository contains the **full system**, including frontend, backend micros
 
 ---
 
-## 🚀 Live Deployment  
+## Live Deployment  
 Frontend (Vercel): *your URL here*  
 Backend Services (Render/Railway):  
 - Client Service: *your URL*  
@@ -113,7 +112,7 @@ TigerTix uses a **microservice-oriented architecture**, where each service is in
 
 ---
 
-# 🛠 Installation & Setup (Local Development)
+#  Installation & Setup (Local Development)
 
 ### **1. Clone the repository**
 ```bash
@@ -123,7 +122,7 @@ cd Tiger-Ticket-App---Jalil-Kellen-Hayden
 
 ---
 
-## 🖥 Frontend Setup (React)
+##  Frontend Setup (React)
 
 ```
 cd frontend
@@ -135,7 +134,7 @@ Runs on **http://localhost:3000**
 
 ---
 
-## 🔧 Backend Setup (Microservices)
+##  Backend Setup (Microservices)
 
 Open **each service folder** and install dependencies:
 
@@ -174,7 +173,7 @@ backend/shared-db/database.sqlite
 
 ---
 
-# 🔐 Environment Variables
+# Environment Variables
 
 Create a `.env` file in each microservice:
 
@@ -200,7 +199,7 @@ REACT_APP_AUTH_BASE=https://your-auth-service-url
 
 ---
 
-# 🧪 Running Regression Tests
+# Running Regression Tests
 
 TigerTix includes automated tests using **Jest** and **React Testing Library**.
 
