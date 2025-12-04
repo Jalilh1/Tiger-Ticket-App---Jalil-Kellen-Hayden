@@ -66,7 +66,7 @@ const TigerTixLLM = {
 
       const raw = await hf.textGeneration({
         model: 'meta-llama/Meta-Llama-3.1-8B-Instruct',
-        provider = 'hf-inference',
+        provider: 'hf-inference',
         inputs: fullPrompt,
         parameters: {
           max_new_tokens: 256,
