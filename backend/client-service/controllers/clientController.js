@@ -27,46 +27,40 @@ async function getEvents(req, res) {
  * Body: { eventId, quantity }
  * Requires authMiddleware so req.user is set.
  */
-async function purchaseTicket(req, res) {
+const purchaseTicket = async (req, res) => {
   try {
-    // authMiddleware should set req.user
-    const user = req.user;
+    console.log('purchaseTicket body:', req.body);
+    console.log('purchaseTicket user:', req.user);
 
-    // Extra safety: support either id or userId in the JWT payload
-    const userId = user && (user.id || user.userId);
-    if (!userId) {
-      console.error('purchaseTicket: Missing user id on req.user:', user);
-      return res.status(401).json({ error: 'Unauthorized: user id missing' });
+    // Accept both eventId and event_id to be safe
+    const { eventId, event_id, quantity } = req.body || {};
+    const finalEventId = eventId ?? event_id;
+
+    if (!finalEventId || !quantity) {
+      return res.status(400).json({ error: 'Event ID and quantity are required' });
     }
 
-    const { eventId, quantity } = req.body;
-
-    if (!eventId || !quantity) {
-      return res.status(400).json({
-        error: 'eventId and quantity are required',
-      });
+    if (!req.user || !req.user.id) {
+      console.error('purchaseTicket: req.user missing or malformed:', req.user);
+      return res.status(401).json({ error: 'User not authenticated' });
     }
 
-    const purchase = await clientModel.createPurchase(
-      Number(userId),
-      Number(eventId),
-      Number(quantity)
-    );
+    const userId = req.user.id;
 
-    return res.status(201).json({
-      success: true,
-      purchase,
+    // use your existing model function
+    const purchase = await clientModel.createPurchase({
+      eventId: finalEventId,
+      userId,
+      quantity: Number(quantity),
     });
-  } catch (err) {
-    console.error('Purchase ticket error:', err);
 
-    if (err.message === 'Event not found' || err.message === 'Not enough tickets available') {
-      return res.status(400).json({ error: err.message });
-    }
-
+    console.log('purchaseTicket success:', purchase);
+    return res.status(201).json(purchase);
+  } catch (error) {
+    console.error('Purchase ticket error:', error);
     return res.status(500).json({ error: 'Failed to purchase ticket' });
   }
-}
+};
 
 /**
  * Optional: GET /api/client/purchases
