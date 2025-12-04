@@ -11,8 +11,8 @@ const sqlite3 = require('sqlite3').verbose();
 const fs = require('fs');
 const path = require('path');
 
-const dbPath = path.join(__dirname, '../shared-db/database.sqlite');
-const sqlPath = path.join(__dirname, '../shared-db/init.sql');
+const dbPath = path.join(__dirname, 'database.sqlite');
+const sqlPath = path.join(__dirname, 'init.sql');
 
 function initializeDatabase() {
     return new Promise((resolve, reject) => {
