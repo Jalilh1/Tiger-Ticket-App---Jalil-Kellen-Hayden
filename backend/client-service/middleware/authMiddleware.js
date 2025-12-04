@@ -1,19 +1,17 @@
-// middleware/authMiddleware.js
+// backend/client-service/middleware/authMiddleware.js
+
 const jwt = require('jsonwebtoken');
 
-// IMPORTANT: JWT_SECRET must be set in Railway env for EACH service
-const JWT_SECRET = process.env.JWT_SECRET;
-
-if (!JWT_SECRET) {
-  console.warn(
-    '[authMiddleware] JWT_SECRET is not set in environment. ' +
-    'All token verification will fail until it is configured.'
-  );
-}
+// IMPORTANT: rely on Railway env var JWT_SECRET (no local .env here)
+const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret';
 
 const authMiddleware = (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
+
+    console.log('CLIENT SERVICE auth header:', authHeader);
+    console.log('JWT_SECRET in middleware:', JWT_SECRET);
+    console.log('Is fallback?', JWT_SECRET === 'fallback_secret');
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return res.status(401).json({
@@ -22,19 +20,33 @@ const authMiddleware = (req, res, next) => {
       });
     }
 
-    const token = authHeader.substring(7); // strip "Bearer "
+    const token = authHeader.substring(7);
 
+    // Verify token
     const decoded = jwt.verify(token, JWT_SECRET);
+    console.log('Decoded token in client-service:', decoded);
 
-    // Normalized user object
+    // Your token payload has `userId`, so support both shapes just in case
+    const userId = decoded.userId || decoded.id;
+
+    if (!userId) {
+      console.error('Decoded token missing userId/id:', decoded);
+      return res.status(401).json({
+        error: 'Invalid token payload',
+        requiresAuth: true,
+      });
+    }
+
     req.user = {
-      id: decoded.userId || decoded.id,
+      id: userId,
       email: decoded.email,
       name: decoded.name,
     };
 
-    next();
+    return next();
   } catch (error) {
+    console.error('authMiddleware error in client-service:', error);
+
     if (error.name === 'TokenExpiredError') {
       return res.status(401).json({
         error: 'Token has expired',
@@ -43,7 +55,6 @@ const authMiddleware = (req, res, next) => {
       });
     }
 
-    console.error('[authMiddleware] Token verification failed:', error);
     return res.status(401).json({
       error: 'Invalid token',
       requiresAuth: true,
