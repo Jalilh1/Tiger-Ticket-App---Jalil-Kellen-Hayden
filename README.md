@@ -36,8 +36,8 @@ Purchase tickets
 - LLM-driven booking (e.g., “Book 2 tickets for the Concert”).
 
 Voice Interaction (Accessibility Feature)  
-- **SpeechRecognition API** → Convert user speech into text.  
-- **Speech Synthesis API** → Read assistant responses aloud.  
+- SpeechRecognition API Converting user speech into text.  
+- Speech Synthesis API Reading assistant responses aloud.  
 - Built to support visually-impaired users per accessibility guidelines.
 
 LLM Processing  
