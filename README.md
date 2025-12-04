@@ -112,9 +112,9 @@ TigerTix uses a **microservice-oriented architecture**, where each service is in
 
 ---
 
-#  Installation & Setup (Local Development)
+Installation & Setup (Local Development)
 
-### **1. Clone the repository**
+**1. Clone the repository**
 ```bash
 git clone https://github.com/Jalilh1/Tiger-Ticket-App---Jalil-Kellen-Hayden
 cd Tiger-Ticket-App---Jalil-Kellen-Hayden
@@ -124,10 +124,8 @@ cd Tiger-Ticket-App---Jalil-Kellen-Hayden
 
 ##  Frontend Setup (React)
 
-cd frnntend
-npm install
+cd fronntend
 npm start
-
 
 Runs on **http://localhost:3000**
 
@@ -140,29 +138,25 @@ Open **each service folder** and install dependencies:
 Admin Service  
 ```
 cd backend/admin-service
-npm install
-npm start
+node server.js
 ```
 
 Client Service  
 ```
 cd backend/client-service
-npm install
-npm start
+node server.js
 ```
 
 LLM Service  
 ```
 cd backend/llm-service
-npm install
-npm start
+node server.js
 ```
 
 Authentication Service
 ```
 cd backend/auth-service
-npm install
-npm start
+node server.js
 ```
 
 SQLite database file lives in:  
@@ -203,7 +197,7 @@ Running Regression Tests
 TigerTix includes automated tests using **Jest** and **React Testing Library**.
 
 Backend Tests
-```bash
+```
 npm test
 ```
 
