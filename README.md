@@ -173,17 +173,40 @@ Create a `.env` file in each microservice:
 Example (Client Service)
 ```
 PORT=5002
-DB_PATH=../shared-db/database.sqlite
+PGPORT
+PGUser
+PGPassword
+PGHost
+DBURL
+PGDatabase
 JWT_SECRET=your-secret-here
+ALLOWED_ORIGIN
 ```
 
 Example (Auth Service)
 ```
 JWT_SECRET=your-secret-here
-DB_PATH=../shared-db/database.sqlite
-```
+PGPORT
+PGUser
+PGPassword
+PGHost
+DBURL
+PGDatabase
+ALLOWED_ORIGIN
 
-xample (Frontend – Vercel)
+```
+Example (LLM Service)
+HF_API_KEY
+HF_Model
+PGPORT
+PGUser
+PGPassword
+PGHost
+DBURL
+PGDatabase
+ALLOWED_ORIGIN
+
+Example (Frontend – Vercel)
 ```
 REACT_APP_CLIENT_BASE=https://your-client-service-url
 REACT_APP_LLM_BASE=https://your-llm-service-url
