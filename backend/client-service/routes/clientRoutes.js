@@ -1,17 +1,18 @@
-/**
- * Client routes
- * Brief: Public endpoints to browse events and purchase tickets.
- * Exposes: GET /events, GET /events/:id, POST /purchase
- */
+// backend/client-service/routes/clientRoutes.js
 
 const express = require('express');
 const router = express.Router();
 const clientController = require('../controllers/clientController');
 const authMiddleware = require('../middleware/authMiddleware');
 
-router.get('/events', clientController.listEvents);
-router.get('/events/:id', clientController.getEvent);
+// Public or protected, your choice:
+router.get('/events', clientController.getEvents);
+
+// Purchase must be protected
 router.post('/purchase', authMiddleware, clientController.purchaseTicket);
+
+// Optional: view purchases
+router.get('/purchases', authMiddleware, clientController.getMyPurchases);
 
 module.exports = router;
 

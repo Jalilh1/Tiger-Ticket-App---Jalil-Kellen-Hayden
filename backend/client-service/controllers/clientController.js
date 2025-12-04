@@ -1,94 +1,96 @@
-// controllers/clientController.js
-// Purpose: HTTP handlers for events and ticket purchase, using clientModel + JWT auth.
+// backend/client-service/controllers/clientController.js
+
+/**
+ * Client service controller.
+ * Handles HTTP layer, relies on clientModel for DB access.
+ */
 
 const clientModel = require('../models/clientModel');
 
 /**
  * GET /api/client/events
- * Returns list of events with available tickets.
+ * Return list of events for the logged-in (or even anonymous) user.
+ * (If you want this to require auth, ensure authMiddleware is on the route.)
  */
-exports.listEvents = async (req, res) => {
+async function getEvents(req, res) {
   try {
-    const events = await clientModel.getAllEvents();
+    const events = await clientModel.getEvents();
     return res.json(events);
   } catch (err) {
-    console.error('listEvents error:', err);
-    return res.status(500).json({
-      error: 'Failed to fetch events',
-      details: err.message,
-    });
+    console.error('Error fetching events:', err);
+    return res.status(500).json({ error: 'Failed to fetch events' });
   }
-};
-
-/**
- * GET /api/client/events/:id
- * Returns a single event by id.
- */
-exports.getEvent = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const event = await clientModel.getEventById(id);
-
-    if (!event) {
-      return res.status(404).json({ error: 'Event not found' });
-    }
-
-    return res.json(event);
-  } catch (err) {
-    console.error('getEvent error:', err);
-    return res.status(500).json({
-      error: 'Failed to fetch event',
-      details: err.message,
-    });
-  }
-};
+}
 
 /**
  * POST /api/client/purchase
  * Body: { eventId, quantity }
- * Requires auth (JWT via authMiddleware).
+ * Requires authMiddleware so req.user is set.
  */
-exports.purchaseTicket = async (req, res) => {
+async function purchaseTicket(req, res) {
   try {
-    // authMiddleware sets req.userId and req.userEmail
-    if (!req.userId) {
-      console.error('purchaseTicket: req.userId is missing');
-      return res.status(401).json({ error: 'Not authenticated' });
+    // authMiddleware should set req.user
+    const user = req.user;
+
+    // Extra safety: support either id or userId in the JWT payload
+    const userId = user && (user.id || user.userId);
+    if (!userId) {
+      console.error('purchaseTicket: Missing user id on req.user:', user);
+      return res.status(401).json({ error: 'Unauthorized: user id missing' });
     }
 
-    const userId = req.userId;
     const { eventId, quantity } = req.body;
 
     if (!eventId || !quantity) {
-      return res.status(400).json({ error: 'eventId and quantity are required' });
+      return res.status(400).json({
+        error: 'eventId and quantity are required',
+      });
     }
 
-    const purchaseData = {
-      event_id: eventId,
-      user_id: userId,
-      quantity,
-    };
-
-    const result = await clientModel.purchaseTicket(purchaseData);
+    const purchase = await clientModel.createPurchase(
+      Number(userId),
+      Number(eventId),
+      Number(quantity)
+    );
 
     return res.status(201).json({
-      message: 'Purchase successful',
-      purchase: {
-        id: result.id,
-        event_id: result.event_id,
-        user_id: result.user_id,
-        quantity: result.quantity,
-      },
-      updatedEvent: {
-        id: result.event_id,
-        // You can add more event fields here later if you extend clientModel
-      },
+      success: true,
+      purchase,
     });
   } catch (err) {
     console.error('Purchase ticket error:', err);
-    return res.status(500).json({
-      error: 'Failed to purchase ticket',
-      details: err.message,
-    });
+
+    if (err.message === 'Event not found' || err.message === 'Not enough tickets available') {
+      return res.status(400).json({ error: err.message });
+    }
+
+    return res.status(500).json({ error: 'Failed to purchase ticket' });
   }
+}
+
+/**
+ * Optional: GET /api/client/purchases
+ * If you have a “My Tickets” page.
+ */
+async function getMyPurchases(req, res) {
+  try {
+    const user = req.user;
+    const userId = user && (user.id || user.userId);
+
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized: user id missing' });
+    }
+
+    const purchases = await clientModel.getPurchasesByUser(Number(userId));
+    return res.json(purchases);
+  } catch (err) {
+    console.error('Error fetching purchases for user:', err);
+    return res.status(500).json({ error: 'Failed to fetch purchases' });
+  }
+}
+
+module.exports = {
+  getEvents,
+  purchaseTicket,
+  getMyPurchases,
 };
