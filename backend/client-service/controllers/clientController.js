@@ -60,7 +60,7 @@ const purchaseTicket = async (req, res) => {
     console.error('Purchase ticket error:', error);
     return res.status(500).json({ error: 'Failed to purchase ticket' });
   }
-};
+}
 
 /**
  * Optional: GET /api/client/purchases
