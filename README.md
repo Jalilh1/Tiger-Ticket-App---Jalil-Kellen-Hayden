@@ -1,5 +1,5 @@
 # Tiger-Ticket-App---Jalil-Kellen-Hayden - Tiger Tix 
-**Microservices + React + LLM + Voice Interface**
+Description:
 
 TigerTix is an accessible, event-booking platform built using a microservices architecture.  
 It supports traditional ticket purchasing, natural-language booking through an integrated LLM, and full voice interaction for visually impaired users (speech-to-text + text-to-speech).
@@ -10,7 +10,7 @@ This repository contains the **full system**, including frontend, backend micros
 
 ## Live Deployment  
 Frontend (Vercel): 
-Backend Services (Render/Railway):  
+Backend Services (Render):  
 - Client Service:   
 - Admin Service: 
 - LLM Service: 
@@ -25,22 +25,22 @@ Demo Video (2 minutes):
 
 TigerTix enables users to:
 
-### Browse campus events  
+Browse campus events  
 - View event names, dates, and remaining ticket availability.
 
-### Register & Log In  
+Register & Log In  
 - Secure authentication using hashed passwords + JWT tokens.
 
-### Purchase tickets  
+Purchase tickets  
 - Standard purchase flow via forms.  
 - LLM-driven booking (e.g., “Book 2 tickets for the Concert”).
 
-### Voice Interaction (Accessibility Feature)  
-- **SpeechRecognition API** → Convert user speech into text.  
-- **Speech Synthesis API** → Read assistant responses aloud.  
+Voice Interaction (Accessibility Feature)  
+- SpeechRecognition API Converting user speech into text.  
+- Speech Synthesis API Reading assistant responses aloud.  
 - Built to support visually-impaired users per accessibility guidelines.
 
-###  LLM Processing  
+LLM Processing  
 The LLM microservice parses natural language input to extract:  
 - **intent** (view events, book tickets, greeting)  
 - **event name**  
@@ -48,25 +48,25 @@ The LLM microservice parses natural language input to extract:
 
 ---
 
-#  Tech Stack
+Tech Stack
 
-### **Frontend**
+**Frontend**
 - React (Create React App)
 - SpeechRecognition API (Web Speech API)
 - Speech Synthesis API
 - ARIA accessibility features
 
-### **Backend Microservices**
+**Backend Microservices**
 All Node.js + Express, each deployed independently.
 - **Admin Service** – Event creation, update, delete
 - **Client Service** – Retrieve events & process ticket purchases  
 - **LLM Service** – Natural-language intent parsing + booking suggestions
 - **Authentication Service (Sprint 3)** – JWT login/register, password hashing
 
-### **Database**
+ **Database**
 - SQLite (shared across services)
 
-### **CI/CD**
+**CI/CD**
 - GitHub Actions  
   - Install dependencies  
   - Run regression tests (Jest + React Testing Library)  
@@ -83,7 +83,7 @@ TigerTix uses a **microservice-oriented architecture**, where each service is in
                               │      Frontend (React)    │
                               │  - Displays events        │
                               │  - Buy tickets            │
-                              │  - Chat assistant UI      │
+                              │  - Chat assistant UI      |
                               │  - Voice input/output     │
                               └─────────────┬────────────┘
                                             │
@@ -112,9 +112,9 @@ TigerTix uses a **microservice-oriented architecture**, where each service is in
 
 ---
 
-#  Installation & Setup (Local Development)
+Installation & Setup (Local Development)
 
-### **1. Clone the repository**
+**1. Clone the repository**
 ```bash
 git clone https://github.com/Jalilh1/Tiger-Ticket-App---Jalil-Kellen-Hayden
 cd Tiger-Ticket-App---Jalil-Kellen-Hayden
@@ -124,46 +124,39 @@ cd Tiger-Ticket-App---Jalil-Kellen-Hayden
 
 ##  Frontend Setup (React)
 
-```
-cd frontend
-npm install
+cd fronntend
 npm start
-```
 
 Runs on **http://localhost:3000**
 
 ---
 
-##  Backend Setup (Microservices)
+Backend Setup (Microservices)
 
 Open **each service folder** and install dependencies:
 
-### Admin Service  
+Admin Service  
 ```
 cd backend/admin-service
-npm install
-npm start
+node server.js
 ```
 
-### Client Service  
+Client Service  
 ```
 cd backend/client-service
-npm install
-npm start
+node server.js
 ```
 
-### LLM Service  
+LLM Service  
 ```
 cd backend/llm-service
-npm install
-npm start
+node server.js
 ```
 
-### Authentication Service
+Authentication Service
 ```
 cd backend/auth-service
-npm install
-npm start
+node server.js
 ```
 
 SQLite database file lives in:  
@@ -177,20 +170,20 @@ backend/shared-db/database.sqlite
 
 Create a `.env` file in each microservice:
 
-### Example (Client Service)
+Example (Client Service)
 ```
 PORT=5002
 DB_PATH=../shared-db/database.sqlite
 JWT_SECRET=your-secret-here
 ```
 
-### Example (Auth Service)
+Example (Auth Service)
 ```
 JWT_SECRET=your-secret-here
 DB_PATH=../shared-db/database.sqlite
 ```
 
-### Example (Frontend – Vercel)
+xample (Frontend – Vercel)
 ```
 REACT_APP_CLIENT_BASE=https://your-client-service-url
 REACT_APP_LLM_BASE=https://your-llm-service-url
@@ -199,24 +192,23 @@ REACT_APP_AUTH_BASE=https://your-auth-service-url
 
 ---
 
-# Running Regression Tests
+Running Regression Tests
 
 TigerTix includes automated tests using **Jest** and **React Testing Library**.
 
-### Backend Tests
-```bash
+Backend Tests
+```
 npm test
 ```
 
-### Frontend Tests
+Frontend Tests
 ```
 cd frontend
 npm test
 ```
-
 ---
 
-# CI/CD (GitHub Actions)
+ CI/CD (GitHub Actions)
 
 On **every push to main**, GitHub Actions will:
 
