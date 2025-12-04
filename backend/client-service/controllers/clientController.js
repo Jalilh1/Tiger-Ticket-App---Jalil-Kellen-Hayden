@@ -48,11 +48,11 @@ const purchaseTicket = async (req, res) => {
     const userId = req.user.id;
 
     // use your existing model function
-    const purchase = await clientModel.createPurchase({
+    const purchase = await clientModel.createPurchase(
       userId,
       finalEventId,
-      quantity
-    });
+      Number(quantity)
+    );
 
     console.log('purchaseTicket success:', purchase);
     return res.status(201).json(purchase);
