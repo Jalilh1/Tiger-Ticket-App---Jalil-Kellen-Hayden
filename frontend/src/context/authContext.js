@@ -8,7 +8,7 @@ export function AuthProvider({ children }) {
     const [loading, setLoading] = useState(true);
 
     // CHANGED: centralize base URL via env var with a safe default
-    const AUTH_URL = process.env.REACT_APP_AUTH_URL || 'http://localhost:5004';
+    const AUTH_URL = process.env.REACT_APP_AUTH_BASE || 'http://localhost:5004';
 
     useEffect(() => {
         const storedToken = localStorage.getItem('token');
