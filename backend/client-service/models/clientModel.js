@@ -2,126 +2,94 @@
  * Client data model
  * Brief: SQLite reads for events and transactional ticket purchase.
  */
-
-const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 
 const authMiddleware = require('../middleware/authMiddleware');
 
-const dbPath = process.env.DATABASE_PATH || path.join(__dirname, '../../shared-db/database.sqlite');
-
-function getDbConnection() {
-    return new sqlite3.Database(dbPath, (err) => {
-        if (err) {
-            console.error('Could not connect to database', err);
-        } else {
-            console.log('Connected to SQLite database');
-        }
-    });
-}
-
+// client-service/models/clientModel.js
+const pool = require('../db');
 
 const clientModel = {
-  
   /**
-   * Purpose: Fetch all events with remaining inventory.
-   * Params: none
-   * Returns: Promise<Event[]>
+   * Get all events with remaining inventory.
    */
-  getAllEvents: () => {
-    return new Promise((resolve, reject) => {
-      const db = getDbConnection();
-      db.all('SELECT * FROM events WHERE available_tickets > 0 ORDER BY date', [], (err, rows) => {
-        db.close();
-        if (err) reject(err);
-        else resolve(rows);
-      });
-    });
+  getAllEvents: async () => {
+    const result = await pool.query(
+      `SELECT id, name, date, capacity, available_tickets
+       FROM events
+       WHERE available_tickets > 0
+       ORDER BY date ASC, id ASC`
+    );
+    return result.rows;
   },
 
   /**
-   * Purpose: Fetch a single event by id.
-   * Params: (id: string|number)
-   * Returns: Promise<Event|null>
+   * Get a single event by id.
    */
-  getEventById: (id) => {
-    return new Promise((resolve, reject) => {
-      const db = getDbConnection();
-      db.get('SELECT * FROM events WHERE id = ?', [id], (err, row) => {
-        db.close();
-        if (err) reject(err);
-        else resolve(row);
-      });
-    });
+  getEventById: async (id) => {
+    const result = await pool.query(
+      `SELECT id, name, date, capacity, available_tickets
+       FROM events
+       WHERE id = $1`,
+      [id]
+    );
+    return result.rows[0] || null;
   },
 
-
   /**
- * Purpose: Create a purchase and decrement inventory atomically.
- * Params: (purchaseData: { event_id:number, customer_name:string, customer_email:string, quantity:number})
- * Returns: Promise<{ id:number, event_id:number, customer_name:string, customer_email:string, quantity:number, message:string }>
- */
-  purchaseTicket: (purchaseData) => {
-    return new Promise((resolve, reject) => {
-      const { event_id, user_id, quantity } = purchaseData;
-      const db = getDbConnection();
+   * Purchase ticket(s) and decrement inventory atomically.
+   * purchaseData: { event_id, user_id, quantity }
+   */
+  purchaseTicket: async ({ event_id, user_id, quantity }) => {
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
 
-      //Start transaction
-      db.serialize(() => {
-        //Check if tickets available
-        db.get('SELECT available_tickets FROM events WHERE id = ?', [event_id], (err, event) => {
-          if (err) {
-            db.close();
-            reject(err);
-            return;
-          }
+      // Lock row FOR UPDATE to avoid race conditions
+      const eventRes = await client.query(
+        `SELECT id, available_tickets
+         FROM events
+         WHERE id = $1
+         FOR UPDATE`,
+        [event_id]
+      );
 
-          if (!event) {
-            db.close();
-            reject(new Error('Event not found'));
-            return;
-          }
+      const event = eventRes.rows[0];
+      if (!event) {
+        throw new Error('Event not found');
+      }
 
-          if (event.available_tickets < quantity) {
-            db.close();
-            reject(new Error('Not enough tickets available'));
-            return;
-          }
+      if (event.available_tickets < quantity) {
+        throw new Error('Not enough tickets available');
+      }
 
-          //Insert purchase
-          db.run(
-            'INSERT INTO purchases (event_id, user_id, quantity) VALUES (?, ?, ?)',
-            [event_id, user_id, quantity],
-            function(err) {
-              if (err) {
-                db.close();
-                reject(err);
-                return;
-              }
+      const purchaseRes = await client.query(
+        `INSERT INTO purchases (event_id, user_id, quantity)
+         VALUES ($1, $2, $3)
+         RETURNING id, event_id, user_id, quantity, purchase_date`,
+        [event_id, user_id, quantity]
+      );
 
-              const purchaseId = this.lastID;
+      await client.query(
+        `UPDATE events
+         SET available_tickets = available_tickets - $1
+         WHERE id = $2`,
+        [quantity, event_id]
+      );
 
-              //Update available tickets
-              db.run(
-                'UPDATE events SET available_tickets = available_tickets - ? WHERE id = ?',
-                [quantity, event_id],
-                (err) => {
-                  db.close();
-                  if (err) reject(err);
-                  else resolve({ 
-                    id: purchaseId, 
-                    event_id, 
-                    user_id, 
-                    quantity,
-                    message: 'Ticket purchased successfully!' 
-                  });
-                }
-              );
-            }
-          );
-        });
-      });
-    });
+      await client.query('COMMIT');
+
+      const purchase = purchaseRes.rows[0];
+      return {
+        ...purchase,
+        message: 'Ticket purchased successfully!'
+      };
+    } catch (err) {
+      await client.query('ROLLBACK');
+      throw err;
+    } finally {
+      client.release();
+    }
   }
 };
 

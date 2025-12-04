@@ -1,120 +1,75 @@
-/**
- * Admin data model
- * Brief: SQLite accessors for admin event CRUD.
- */
-
-const sqlite3 = require('sqlite3').verbose();
-const path = require('path');
-
-const dbPath = path.join(__dirname, '../../shared-db/database.sqlite');
-
-/**
- * Establish SQLite database connection
- */
-function getDbConnection() {
-    return new sqlite3.Database(dbPath, (err) => {
-        if (err) {
-            console.error('Could not connect to database', err);
-        }
-    });
-}
+// admin-service/models/adminModel.js
+const pool = require('../db');
 
 const adminModel = {
-
-    /**
-     * Purpose: Fetch all events ordered by date.
-     * Params: none
-     * Returns: Promise<Event[]>
-     */
-    getAllEvents: () => {
-        return new Promise((resolve, reject) => {
-            const db = getDbConnection();
-            db.all('SELECT * FROM events ORDER BY date', [], (err, rows) => {
-                db.close();
-                if (err) reject(err)
-                    else resolve(rows);
-                });
-        });
-    },
-
-    /**
-     * Purpose: Fetch a single event by id.
-     * Params: (id: string|number)
-     * Returns: Promise<Event|null>
-     */
-    getEventById: (id) => {
-        return new Promise((resolve, reject) => {
-            const db = getDbConnection();
-            db.get('SELECT * FROM events WHERE id = ?', [id], (err, row) => {
-                db.close();
-                if (err) reject(err)
-                    else resolve(row);
-                });
-        });
-    },
-
-    /**
-     * Purpose: Insert a new event.
-     * Params: (eventData: { name:string, date:string, capacity:number, available_tickets:number })
-     * Returns: Promise<{ id:number, name:string, date:string, capacity:number, available_tickets:number }>
-     */
-    createEvent: (eventData) => {
-    return new Promise((resolve, reject) => {
-      const { name, date, capacity, available_tickets } = eventData;
-      const db = getDbConnection();
-
-      const sql = `INSERT INTO events (name, date, capacity, available_tickets)
-                   VALUES (?, ?, ?, ?)`;
-
-      db.run(sql, [name, date, capacity, available_tickets], function (err) {
-        db.close();
-        if (err) {
-          console.error('SQLite insert error:', err);  
-          return reject(err);
-        }
-        resolve({ id: this.lastID, name, date, capacity, available_tickets });
-      });
-    });
+  /**
+   * Fetch all events ordered by date.
+   */
+  getAllEvents: async () => {
+    const result = await pool.query(
+      `SELECT id, name, date, capacity, available_tickets
+       FROM events
+       ORDER BY date ASC, id ASC`
+    );
+    return result.rows;
   },
 
-    /**
-     * Purpose: Update fields of an event by id.
-     * Params: (id: string|number, eventData: Partial<Event>)
-     * Returns: Promise<{ id: string|number } & Partial<Event>>
-     * // WHY: Resolve with the canonical updated payload so controllers don't need DB metadata.
-     */
-    updateEvent: (id, eventData) => {
-        return new Promise((resolve, reject) => {
-            const { name, date, capacity, available_tickets } = eventData;
-            const db = getDbConnection();
+  /**
+   * Fetch a single event by id.
+   */
+  getEventById: async (id) => {
+    const result = await pool.query(
+      `SELECT id, name, date, capacity, available_tickets
+       FROM events
+       WHERE id = $1`,
+      [id]
+    );
+    return result.rows[0] || null;
+  },
 
-            db.run(
-                'UPDATE events SET name = ?, date = ?, capacity = ?, available_tickets = ? WHERE id = ?',
-                [name, date, capacity, available_tickets, id],
-                function (err) {
-                    db.close();
-                    if (err) reject(err);
-                        else resolve({ id, ...eventData });
-                }
-            );
-        });
-    },
+  /**
+   * Insert a new event.
+   */
+  createEvent: async ({ name, date, capacity, available_tickets }) => {
+    const result = await pool.query(
+      `INSERT INTO events (name, date, capacity, available_tickets)
+       VALUES ($1, $2, $3, $4)
+       RETURNING id, name, date, capacity, available_tickets`,
+      [name, date, capacity, available_tickets]
+    );
+    return result.rows[0];
+  },
 
-    /**
-     * Purpose: Delete an event by id.
-     * Params: (id: string|number)
-     * Returns: Promise<{ id: string|number, changes: number }>
-     */
-    deleteEvent: (id) => {
-        return new Promise((resolve, reject) => {
-            const db = getDbConnection();
-            db.run('DELETE FROM events WHERE id = ?', [id], function (err) {
-                db.close();
-                if (err) reject(err);
-                    else resolve({ id, changes: this.changes });
-                });
-        });
-    }
+  /**
+   * Update an event by id.
+   * Returns updated row or null if not found.
+   */
+  updateEvent: async (id, { name, date, capacity, available_tickets }) => {
+    const result = await pool.query(
+      `UPDATE events
+       SET name = $1,
+           date = $2,
+           capacity = $3,
+           available_tickets = $4
+       WHERE id = $5
+       RETURNING id, name, date, capacity, available_tickets`,
+      [name, date, capacity, available_tickets, id]
+    );
+    return result.rows[0] || null;
+  },
+
+  /**
+   * Delete an event by id.
+   * Returns: { id, deleted: boolean }
+   */
+  deleteEvent: async (id) => {
+    const result = await pool.query(
+      `DELETE FROM events
+       WHERE id = $1`,
+      [id]
+    );
+    return { id, deleted: result.rowCount > 0 };
+  }
 };
 
-module.exports = adminModel ;
+module.exports = adminModel;
