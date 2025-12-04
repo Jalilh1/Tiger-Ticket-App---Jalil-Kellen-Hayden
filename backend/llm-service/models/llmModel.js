@@ -10,7 +10,7 @@
  */
 
 const { HfInference } = require('@huggingface/inference');
-const { pool } = require('../db'); // Shared Postgres connection
+const pool = require('../db'); // Shared Postgres connection
 
 // IMPORTANT: no dotenv here – Railway injects env vars directly.
 const HF_API_KEY = process.env.HUGGINGFACE_API_KEY;
@@ -67,7 +67,6 @@ const TigerTixLLM = {
       const raw = await hf.textGeneration({
         model: 'meta-llama/Meta-Llama-3.1-8B-Instruct',
         inputs: fullPrompt,
-        provider: 'hf',
         parameters: {
           max_new_tokens: 256,
           temperature: 0.2,
