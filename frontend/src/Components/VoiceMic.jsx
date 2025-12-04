@@ -55,9 +55,8 @@ export default function VoiceMic({ onSend }) {
         else interimTxt += txt;
       }
       setInterim(interimTxt);
-      if (finalTxt.trim()) {
-        setInterim("");
-        onSend?.(finalTxt.trim());
+      if (onSend && finalText.trim()) {
+        onSend(finalText.trim(), { fromMic: true });
       }
     };
 

@@ -39,6 +39,7 @@ function AppContent() {
 
   const { user, token, loading: authLoading, logout } = useAuth();
   const [showRegister, setShowRegister] = useState(false);
+  const [ttsActive, setTtsActive] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -185,13 +186,23 @@ function AppContent() {
    * Params: (userText: string)
    * Returns/Side effects: Updates chatMsgs; on error, shows assistant error message.
    */
-  const handleUserChat = async (userText) => {
-    setChatMsgs((m) => [...m, { role: 'user', text: userText }]);
+// AFTER
+  const handleUserChat = async (userText, { fromMic = false } = {}) => {
+    if (!userText.trim()) return;
+
+    // Show user message
+    setChatMsgs(prev => [...prev, { role: 'user', text: userText }]);
+
+    // If this came from the microphone, tell the app to speak the next reply
+    if (fromMic) {
+      setTtsActive(true);
+    }
+
     try {
       const parsed = await llmParse(userText);
       await handleParsedIntent(parsed);
-    } catch (e) {
-      setChatMsgs((m) => [...m, { role: 'assistant', text: 'Sorry—LLM is unavailable.' }]);
+    } catch (err) {
+      console.error('Chat error', err);
     }
   };
 
@@ -242,7 +253,7 @@ function AppContent() {
         });
         setChatMsgs((m) => [...m, { 
           role: 'assistant', 
-          text: `✅ ${ok?.message || 'Booked!'} Confirmation ID: #${ok.purchase_id}` 
+          text: `✅ ${ok?.message || 'Booked!'}` 
         }]);
         await llmFetchEvents(); // update right pane availability
         fetchEvents(); // update left pane availability
@@ -284,10 +295,17 @@ function AppContent() {
    * Returns/Side effects: Invokes speak() when the newest message is role='assistant'.
    */
   useEffect(() => {
-    if (!chatMsgs.length) return;
+    if (!ttsActive || !chatMsgs.length) return;
+
     const last = chatMsgs[chatMsgs.length - 1];
-    if (last.role === 'assistant' && last.text) speak(last.text);
-  }, [chatMsgs]);
+
+    // Only speak the latest assistant message, and only when ttsActive is true
+    if (last.role === 'assistant' && last.text) {
+      speak(last.text);
+      // Reset so future assistant replies are silent unless mic was used again
+      setTtsActive(false);
+    }
+  }, [chatMsgs, ttsActive]);
 
   /**
    * Render (auth loading)
