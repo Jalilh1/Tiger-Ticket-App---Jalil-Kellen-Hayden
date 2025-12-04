@@ -94,6 +94,7 @@ export default function VoiceMic({ onSend }) {
   return (
     <div className="voice-mic" aria-label="Voice input" style={{ display: "flex", alignItems: "center", gap: 8 }}>
       <button
+        type="button"
         onClick={onMicClick}
         aria-label={recording ? "Stop voice input" : "Start voice input"}
         aria-pressed={recording}
