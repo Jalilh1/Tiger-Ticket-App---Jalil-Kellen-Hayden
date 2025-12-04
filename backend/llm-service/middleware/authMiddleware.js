@@ -1,51 +1,52 @@
+// middleware/authMiddleware.js
 const jwt = require('jsonwebtoken');
-require('dotenv').config({ path: '../.env' });
+
+// IMPORTANT: JWT_SECRET must be set in Railway env for EACH service
+const JWT_SECRET = process.env.JWT_SECRET;
+
+if (!JWT_SECRET) {
+  console.warn(
+    '[authMiddleware] JWT_SECRET is not set in environment. ' +
+    'All token verification will fail until it is configured.'
+  );
+}
 
 const authMiddleware = (req, res, next) => {
   try {
-    const JWT_SECRET = process.env.JWT_SECRET;
-    
-    if (!JWT_SECRET) {
-      console.error('JWT_SECRET is not set!');
-      return res.status(500).json({ error: 'Server configuration error' });
-    }
-
-    console.log('CLIENT SERVICE auth header:', req.headers.authorization);
-    console.log('JWT_SECRET in middleware:', JWT_SECRET);
-    console.log('Is fallback?', JWT_SECRET === 'fallback_secret');
-    // Get token from Authorization header
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ 
+      return res.status(401).json({
         error: 'No token provided',
-        requiresAuth: true 
+        requiresAuth: true,
       });
     }
 
-    const token = authHeader.substring(7); // Remove 'Bearer ' prefix
+    const token = authHeader.substring(7); // strip "Bearer "
 
-    // Verify token
     const decoded = jwt.verify(token, JWT_SECRET);
 
-    // Attach user info to request
-    req.userId = decoded.userId;
-    req.userEmail = decoded.email;
+    // Normalized user object
+    req.user = {
+      id: decoded.userId || decoded.id,
+      email: decoded.email,
+      name: decoded.name,
+    };
 
     next();
-
   } catch (error) {
     if (error.name === 'TokenExpiredError') {
-      return res.status(401).json({ 
-        error: 'Token expired',
+      return res.status(401).json({
+        error: 'Token has expired',
         requiresAuth: true,
-        expired: true
+        expired: true,
       });
     }
 
-    return res.status(401).json({ 
+    console.error('[authMiddleware] Token verification failed:', error);
+    return res.status(401).json({
       error: 'Invalid token',
-      requiresAuth: true 
+      requiresAuth: true,
     });
   }
 };

@@ -11,9 +11,12 @@
 
 const { HfInference } = require('@huggingface/inference');
 const { pool } = require('../db'); // Shared Postgres connection
-require('dotenv').config({ path: '../.env' });
 
-const hf = new HfInference(process.env.HUGGINGFACE_API_KEY);
+// IMPORTANT: no dotenv here – Railway injects env vars directly.
+const HF_API_KEY = process.env.HUGGINGFACE_API_KEY;
+
+// Instantiate HF client only if key is present
+const hf = HF_API_KEY ? new HfInference(HF_API_KEY) : null;
 
 const TigerTixLLM = {
   /**
@@ -24,6 +27,12 @@ const TigerTixLLM = {
    *   - On HF/parse error: falls back to keywordFallback(message).
    */
   parseBookingIntent: async (userMessage) => {
+    // If no HF API key configured, immediately fall back to keyword logic
+    if (!hf) {
+      console.warn('HUGGINGFACE_API_KEY not set; using keyword fallback only.');
+      return TigerTixLLM.keywordFallback(userMessage);
+    }
+
     try {
       const systemPrompt = `
         You are a ticket booking assistant for TigerTix (Clemson University events).

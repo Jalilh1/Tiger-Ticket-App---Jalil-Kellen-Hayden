@@ -1,57 +1,43 @@
-// client-service/controllers/clientController.js
+// controllers/clientController.js
+// Purpose: HTTP handlers for ticket purchase, using clientModel + JWT auth.
+
 const clientModel = require('../models/clientModel');
 
-const clientController = {
-  listEvents: async (_req, res) => {
-    try {
-      const events = await clientModel.getAllEvents();
-      res.json(events);
-    } catch (err) {
-      console.error('List events error:', err);
-      res.status(500).json({ error: 'Failed to fetch events' });
+exports.purchaseTicket = async (req, res) => {
+  try {
+    const userId = req.user?.id; // injected by authMiddleware
+    const { eventId, quantity } = req.body;
+
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized', requiresAuth: true });
     }
-  },
 
-  getEvent: async (req, res) => {
-    try {
-      const { id } = req.params;
-      const event = await clientModel.getEventById(id);
-      if (!event) {
-        return res.status(404).json({ error: 'Event not found' });
-      }
-      res.json(event);
-    } catch (err) {
-      console.error('Get event error:', err);
-      res.status(500).json({ error: 'Failed to fetch event' });
+    if (!eventId || !quantity || quantity <= 0) {
+      return res.status(400).json({ error: 'eventId and positive quantity are required' });
     }
-  },
 
-  purchaseTicket: async (req, res) => {
-    try {
-      const { event_id, quantity } = req.body;
-      const user_id = req.user.id; // from authMiddleware
+    const result = await clientModel.purchaseTicket({
+      userId,
+      eventId,
+      quantity: Number(quantity),
+    });
 
-      if (!event_id || !quantity) {
-        return res.status(400).json({
-          error: 'Missing required fields: event_id, quantity'
-        });
-      }
+    return res.status(201).json({
+      message: 'Ticket purchase successful',
+      purchase: result.purchase,
+      event: result.event,
+    });
+  } catch (err) {
+    console.error('[clientController] purchaseTicket error:', err);
 
-      const purchase = await clientModel.purchaseTicket({
-        event_id,
-        user_id,
-        quantity
-      });
-
-      res.status(201).json(purchase);
-    } catch (err) {
-      console.error('Purchase ticket error:', err);
-      if (err.message === 'Event not found' || err.message === 'Not enough tickets available') {
-        return res.status(400).json({ error: err.message });
-      }
-      res.status(500).json({ error: 'Failed to purchase ticket' });
+    if (err.message === 'Event not found') {
+      return res.status(404).json({ error: 'Event not found' });
     }
+
+    if (err.message === 'Not enough tickets available') {
+      return res.status(400).json({ error: 'Not enough tickets available' });
+    }
+
+    return res.status(500).json({ error: 'Failed to purchase ticket' });
   }
 };
-
-module.exports = clientController;
