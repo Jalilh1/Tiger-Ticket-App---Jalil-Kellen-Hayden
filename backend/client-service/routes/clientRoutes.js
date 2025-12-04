@@ -16,4 +16,14 @@ router.get('/purchases', authMiddleware, clientController.getMyPurchases);
 
 module.exports = router;
 
+router.get('/test-db', async (req, res) => {
+  const pool = require('../db');
+  try {
+    const result = await pool.query('SELECT * FROM events WHERE id = 1');
+    res.json({ success: true, event: result.rows[0] });
+  } catch (error) {
+    res.status(500).json({ error: error.message, stack: error.stack });
+  }
+});
+
 
